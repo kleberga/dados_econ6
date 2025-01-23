@@ -28,7 +28,7 @@ variaveis$nome <- gsub("INPC - ","", variaveis$nome)
 variaveis <- variaveis[variaveis$id!=45,]
 # filtrar as categorias
 categorias <- inpc$classificacoes$categorias[[1]]
-categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
+# categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
 # url das localidades
 url_loc <- "https://servicodados.ibge.gov.br/api/v3/agregados/7063/localidades/N7%7CN6%7CN1"
 # carregar as localidades
@@ -57,29 +57,32 @@ cadastroSeries <- function(numero, nome, nomeCompleto, descricao, formato, fonte
                "','",nivelGeografico,"','",localidades,"','",categoria,"'),"))
   
 }
-# criar variavel com o ultimo numero de serie inserido manualmente no app
-numero_ini <- 100003
+# formato da lista
+formatoLista <- "<String, dynamic>"
 # criar lista vazia para armazenar as series
 lista_dados <- list()
 # preencher a lista com as series
 for(i in 1:nrow(variaveis)){
   for(j in 1:nrow(localidades)){
     for(w in 1:nrow(categorias)){
-      if(!(localidades[j,"nome_loc"]=="Brasil"&categorias[w,"nome"]=="Índice geral")){
-        numero_ini <- numero_ini+1
-        lista_dados[[as.character(numero_ini)]] <- cadastroSeries(numero_ini, 
-                                                                  "Índice Nacional de Preços ao Consumidor (INPC)",
-                                                                  "Índice Nacional de Preços ao Consumidor (INPC)",
-                                                                  "O INPC tem por objetivo a correção do poder de compra dos salários, através da mensuração das variações de preços da cesta de consumo da população assalariada com mais baixo rendimento. Atualmente, a população-objetivo do INPC abrange as famílias com rendimentos de 1 a 5 salários mínimos, cuja pessoa de referência é assalariada, residentes nas regiões metropolitanas de Belém, Fortaleza, Recife, Salvador, Belo Horizonte, Vitória, Rio de Janeiro, São Paulo, Curitiba, Porto Alegre, além do Distrito Federal e dos municípios de Goiânia, Campo Grande, Rio Branco, São Luís e Aracaju.",
-                                                                  "%",
-                                                                  "IBGE",
-                                                                  paste0("https://servicodados.ibge.gov.br/api/v3/agregados/7063/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=315[",categorias[w,"id"],"]"),
-                                                                  1,
-                                                                  "mensal",
-                                                                  variaveis[i,"nome"],
-                                                                  localidades[j,"nome_nivel"],
-                                                                  localidades[j,"nome_loc"],
-                                                                  categorias[w,"nome"])
+      # if(!(localidades[j,"nome_loc"]=="Brasil"&categorias[w,"nome"]=="Índice geral")){
+      if(TRUE){
+        codigo <- paste(Sys.Date(), format(Sys.time(), "%H:%M:%OS6"), sep = "_")
+        lista_dados[[as.character(codigo)]] <- paste0(formatoLista,"{
+                                                          'numero':", "'",codigo,"', ", 
+                                                          "'nome': 'Índice Nacional de Preços ao Consumidor (INPC)',",
+                                                          "'nomeCompleto': 'Índice Nacional de Preços ao Consumidor (INPC)',",
+                                                          "'descricao': 'O INPC tem por objetivo a correção do poder de compra dos salários, através da mensuração das variações de preços da cesta de consumo da população assalariada com mais baixo rendimento. Atualmente, a população-objetivo do INPC abrange as famílias com rendimentos de 1 a 5 salários mínimos, cuja pessoa de referência é assalariada, residentes nas regiões metropolitanas de Belém, Fortaleza, Recife, Salvador, Belo Horizonte, Vitória, Rio de Janeiro, São Paulo, Curitiba, Porto Alegre, além do Distrito Federal e dos municípios de Goiânia, Campo Grande, Rio Branco, São Luís e Aracaju.',",
+                                                          "'formato': '%', ",
+                                                          "'fonte' : 'IBGE', ",
+                                                          "'urlAPI': ", "'",paste0("https://servicodados.ibge.gov.br/api/v3/agregados/7063/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=315[",categorias[w,"id"],"]"),"', ",
+                                                          "'idAssunto': ", 1, ", ",
+                                                          "'periodicidade': 'mensal', ",
+                                                          "'metrica': ", "'", variaveis[i,"nome"], "', ",
+                                                          "'nivelGeografico': ", "'", localidades[j,"nome_nivel"], "', ",
+                                                          "'localidades': ", "'", localidades[j,"nome_loc"], "', ",
+                                                          "'categoria': ", "'",categorias[w,"nome"], "'", '},'
+        )
       }
     }
   }

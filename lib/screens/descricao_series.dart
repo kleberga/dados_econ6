@@ -25,44 +25,59 @@ class DescricaoSeries extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Descrição da série", style: TextStyle(color: Colors.white),),
-        iconTheme: IconThemeData(
-          color: Colors.white, //change your color here
+        appBar: AppBar(
+          title: Text("Descrição da série", style: TextStyle(color: Colors.white),),
+          iconTheme: IconThemeData(
+            color: Colors.white, //change your color here
+          ),
+          backgroundColor: corFundo,
         ),
-        backgroundColor: corFundo,
-      ),
-      body: Container(
-        child: ListView.builder(
-          itemCount: 1,
-          itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(listaEscolhida.firstWhere((element) => element.numero==cod_series ).nomeCompleto,
-              style: TextStyle(fontWeight: FontWeight.bold),),
-              subtitle: Text("\nDescrição: "+listaEscolhida.firstWhere((element) => element.numero==cod_series).descricao+
-                  "\n"+
-                  "\nNível geográfico: "+listaEscolhida.firstWhere((element) => element.numero==cod_series).nivelGeografico +
-                  "\n"+
-                  "\nLocalidade: "+listaEscolhida.firstWhere((element) => element.numero==cod_series).localidades +
-                  "\n"+
-                  "\nGrupo: "+listaEscolhida.firstWhere((element) => element.numero==cod_series).categoria +
-                  "\n"+
-                  "\nForma de cálculo: "+listaEscolhida.firstWhere((element) => element.numero==cod_series).metrica+
-                  "\n"+
-                  "\nFormato da série: "+listaEscolhida.firstWhere((element) => element.numero==cod_series).formato+
-                  "\n"+
-                  "\nPeriodicidade de divulgação: "+listaEscolhida.firstWhere((element) => element.numero==cod_series).periodicidade +
-                  "\n"+
-                  "\nPeríodo disponível: entre $dataInicialSerie e $dataFinalSerie" +
-                  "\n"+
-                  "\nFonte dos dados: "+listaEscolhida.firstWhere((element) => element.numero==cod_series).fonte+
-                  "\n",
-                textAlign: TextAlign.justify,
-              ),
-            );
-          },
-        ),
-      )
+        body: Container(
+          child: ListView.builder(
+            itemCount: 1,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(listaEscolhida.firstWhere((element) => element.numero==cod_series ).nomeCompleto,
+                  style: TextStyle(fontWeight: FontWeight.bold),),
+                subtitle: RichText(
+                  text: TextSpan(
+                      children: <TextSpan>[
+                        TextSpan(text: '\nDescrição: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: listaEscolhida.firstWhere((element) => element.numero==cod_series).descricao), // Remaining text
+                        TextSpan(text: '\n'), // Remaining text
+                        TextSpan(text: '\nNível geográfico: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: listaEscolhida.firstWhere((element) => element.numero==cod_series).nivelGeografico), // Remaining text
+                        TextSpan(text: '\n'),
+                        TextSpan(text: '\nLocalidade: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: listaEscolhida.firstWhere((element) => element.numero==cod_series).localidades), // Remaining text
+                        TextSpan(text: '\n'),
+                        TextSpan(text: '\nGrupo: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: listaEscolhida.firstWhere((element) => element.numero==cod_series).categoria), // Remaining text
+                        TextSpan(text: '\n'),
+                        TextSpan(text: '\nForma de cálculo: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: listaEscolhida.firstWhere((element) => element.numero==cod_series).metrica), // Remaining text
+                        TextSpan(text: '\n'),
+                        TextSpan(text: '\nFormato da série: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: listaEscolhida.firstWhere((element) => element.numero==cod_series).formato), // Remaining text
+                        TextSpan(text: '\n'),
+                        TextSpan(text: '\nPeriodicidade de divulgação: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: listaEscolhida.firstWhere((element) => element.numero==cod_series).periodicidade), // Remaining text
+                        TextSpan(text: '\n'),
+                        TextSpan(text: '\nPeríodo disponível: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: 'entre $dataInicialSerie e $dataFinalSerie'), // Remaining text
+                        TextSpan(text: '\n'),
+                        TextSpan(text: '\nFonte dos dados: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(text: listaEscolhida.firstWhere((element) => element.numero==cod_series).fonte), // Remaining text
+                        TextSpan(text: '\n'),
+                      ], style: DefaultTextStyle.of(context).style, ),
+                  textAlign: TextAlign.justify,
+                ),
+
+              );
+
+            },
+          ),
+        )
 
     );
   }

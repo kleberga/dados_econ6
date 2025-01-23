@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:core';
 import 'package:collection/collection.dart';
 import 'package:dados_economicos6/provider/riverpod.dart';
-import 'package:dados_economicos6/variables_class.dart';
+import 'package:dados_economicos6/screens/reportar_erro.dart';
+import 'package:dados_economicos6/model/variables_class.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:http/http.dart' as http;
@@ -19,11 +20,8 @@ import 'descricao_series.dart';
 import '../model/model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
+import 'package:diacritic/diacritic.dart';
 
-
-//const Map mapPrecos = {"433": "IPCA - % mensal","188": "INPC - % mensal"};
-//late Map mapEscolhido = {};
-//late List listaEscolhida = [];
 String dropdownValue = "";
 String dropdownValueMetrica = "";
 String dropdownValueNivelGeog = "";
@@ -69,7 +67,7 @@ var corFundo = Color.fromARGB(255, 63, 81, 181);
 List<DadosSeries> listaEscolhida = [];
 
 class TelaDados extends StatefulWidget {
-  final int assuntoSerie;
+  final String assuntoSerie;
   const TelaDados({required this.assuntoSerie});
   @override
   State<TelaDados> createState() => _TelaDados();
@@ -91,7 +89,6 @@ class _TelaDados extends State<TelaDados> {
     await prefs.setString("metricaArmaz", dropdownValueMetrica);
     await prefs.setString("localidadeArmaz", dropdownValueLocalidade);
     await prefs.setString("categoriaArmaz", dropdownValueCategoria);
-    //String url = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados?formato=json";
     String url = url_serie;
     http.Response response = await http.get(Uri.parse(url));
     return response.body;
@@ -115,26 +112,98 @@ class _TelaDados extends State<TelaDados> {
 
   Future loadDataSGS() async {
     String jsonString = await getJsonFromRestAPI(urlSerie);
-    final jsonResponse = json.decode(jsonString);
+    var jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
+    jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
+    jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
+    jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
+    jsonString2 = jsonString2.replaceAll('<head>', '');
+    jsonString2 = jsonString2.replaceAll('<title>Requisição inválida!</title>', '');
+    jsonString2 = jsonString2.replaceAll('<link rev="made" />', '');
+    jsonString2 = jsonString2.replaceAll('<style>', '');
+    jsonString2 = jsonString2.replaceAll('a:link    {color:#0036D7; text-decoration: none;}		/* #4D749F */', '');
+    jsonString2 = jsonString2.replaceAll('a:hover   {color:#3366ff;}', '');
+    jsonString2 = jsonString2.replaceAll('a:active  {color:#0036D7;}', '');
+    jsonString2 = jsonString2.replaceAll('a:link	  {color:#0036D7;}', '');
+    jsonString2 = jsonString2.replaceAll('a:link	  {color:#0036D7;}', '');
+    final jsonResponse = json.decode(jsonString2);
     if(chartData.isNotEmpty){
       chartData.clear();
     }
-    print("jsonResponse: ${jsonResponse['valor']}");
     setState(() {
       for (Map<String, dynamic> i in jsonResponse){
-        if(i['valor']!=""){
+        if(i['valor']!=""&&i['valor']!=null){
           chartData.add(serie_app.fromJson(i));
         }
       }
-      endval1 = chartData.last.data;
-      startval1 = chartData[chartData.length-13].data;
+
       chartData.sort((a, b){ //sorting in descending order
         return a.data.compareTo(b.data);
       });
+      endval1 = chartData.last.data;
+      startval1 = chartData[chartData.length-13].data;
       dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
       dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
       listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
       anoInicialSelecionado = listaAnosSerieAnual.length-13;
+      anoFinalSelecionado = listaAnosSerieAnual.length-1;
+    });
+    ultimaDataIPCA = chartData.last.data;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('dataFinal', endval1.toString());
+  }
+
+  Future loadDataFocus() async {
+    String jsonString = await getJsonFromRestAPI(urlSerie);
+    var jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
+    jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
+    jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
+    jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
+    jsonString2 = jsonString2.replaceAll('<head>', '');
+    jsonString2 = jsonString2.replaceAll('<title>Requisição inválida!</title>', '');
+    jsonString2 = jsonString2.replaceAll('<link rev="made" />', '');
+    jsonString2 = jsonString2.replaceAll('<style>', '');
+    jsonString2 = jsonString2.replaceAll('a:visited {color:#AF8C3A; text-decoration: none;}', '');
+    final jsonResponse = json.decode(jsonString2);
+    if(chartData.isNotEmpty){
+      chartData.clear();
+    }
+    List<serie_app_focus> chartDataFocus = [];
+
+    for (Map<String, dynamic> i in jsonResponse['value']){
+      if(i['Mediana']!=""&&i['Mediana']!=null){
+        if(periodicidade=="trimestral") {
+          var w = i['DataReferencia'].toString().substring(0,1);
+          if(w=="1"){
+            w = "03";
+          } else if(w=="2"){
+            w = "06";
+          } else if(w=="3"){
+            w = "09";
+          } else {
+            w = "12";
+          }
+          var x = w + "/" + i['DataReferencia'].toString().substring(2, 6);
+          chartDataFocus.add(serie_app_focus(DateFormat('MM/yyyy').parse(x), i['Mediana']));
+        } else {
+          chartDataFocus.add(serie_app_focus.fromJson(i));
+        }
+      }
+    }
+    setState(() {
+      for (int i = 0; i < chartDataFocus.length; i++){
+        if(chartDataFocus[i].Mediana!=""){
+          chartData.add(serie_app(chartDataFocus[i].DataReferencia, chartDataFocus[i].Mediana));
+        }
+      }
+      chartData.sort((a, b){ //sorting in descending order
+        return a.data.compareTo(b.data);
+      });
+      endval1 = chartData[chartData.length-1].data;
+      startval1 = chartData[0].data;
+      dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
+      dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
+      listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
+      anoInicialSelecionado = 0;
       anoFinalSelecionado = listaAnosSerieAnual.length-1;
     });
     ultimaDataIPCA = chartData.last.data;
@@ -195,7 +264,6 @@ class _TelaDados extends State<TelaDados> {
     await prefs.setString('dataFinal', endval1.toString());
   }
 
-
   List<serie_app> itemsBetweenDates({
     required List<serie_app> lista,
     required DateTime start,
@@ -214,11 +282,6 @@ class _TelaDados extends State<TelaDados> {
   Future toggleDatabase() async {
     valorToggle = await DatabaseHelper.getAllToggle();
     initialIndex = valorToggle?.firstWhereOrNull((element) => element.id==cod_serie);
-/*    if(initialIndex==null){
-      return initialIndex;
-    } else {
-      return Text("Erro");
-    }*/
     if(initialIndex==null){
       preencherDados(cod_serie);
       initialIndex = 0;
@@ -227,109 +290,60 @@ class _TelaDados extends State<TelaDados> {
     }
   }
 
-/*  void atualizarAnoInicial() async {
-      //listaAnosSerieAnual = await chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
-    listaAnosSerieAnual = [2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014];
-      anoInicialSelecionado = await listaAnosSerieAnual.length-13;
-  }*/
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-/*
-  Future<List<DadosSeries>> fetchDropdownData(codAssunto) async {
-    List<DadosSeries> items = [];
-    QuerySnapshot snapshot = await firestore.collection('indice_precos')
-        .where(idAssunto == codAssunto)
-        .get();
-
-    snapshot.docs.forEach((doc) {
-      items.add({nome: doc['nome']});
-    });
-
-    return items;
-  }
-*/
-
-  //List<DadosSeries> dataList = [];
-
-  Future<List<DadosSeries>> fetchData(int codAssunto) async {
+  Future<List<DadosSeries>> fetchData(String codAssunto) async {
     // Initialize Firestore instance
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-
     // Reference the collection you want to query
-    CollectionReference usersRef = firestore.collection('metadados');
-
-    // Create a query against the collection
-    Query query = usersRef.where('idAssunto', isEqualTo: codAssunto);
-
-    // Execute the query and get the results
-    QuerySnapshot querySnapshot = await query.get();
-
+    CollectionReference usersRef = firestore.collection(codAssunto);
+    QuerySnapshot querySnapshot = await usersRef.get();
     // Convert the query results into a list of DadosSeries objects
     return querySnapshot.docs.map((doc) {
       return DadosSeries.fromFirestore(doc);
     }).toList();
   }
 
-
-
-
-
-
-
-
   late Future<List<DadosSeries>> api1Future;
-
-
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
-    //codAssunto = listaAssunto.firstWhere((element) => element.nome==widget.assuntoSerie).id;
-    print("widget.assuntoSerie: ${widget.assuntoSerie}");
     codAssunto = widget.assuntoSerie;
 
     api1Future = fetchData(codAssunto);
     api1Future.then((data) {
         setState(() {
-/*          List<DadosSeries> loadedData = [
-            DadosSeries(numero: "1", urlAPI: 'url1', fonte: 'IBGE', nome: 'Serie 1', categoria: "índice",descricao: "", formato: "", idAssunto: 1, localidades: "", metrica: "", nivelGeografico: "", nomeCompleto: "", periodicidade: ""),
-            DadosSeries(numero: "2", urlAPI: 'url2', fonte: 'IBGE', nome: 'Serie 2', categoria: "índice",descricao: "", formato: "", idAssunto: 1, localidades: "", metrica: "", nivelGeografico: "", nomeCompleto: "", periodicidade: ""),
-          ];*/
-
-          //final container = ProviderContainer();
-          //listaEscolhida = data;
-          //Provider.of<ListaMeusDados>(context, listen: false).setListaEscolhida(data);
-
-          //listaMeusDados.setListaEscolhida(loadedData);
-          //var listaEscolhida = listaMeusDados.getListaEscolhida;
-          //var listaEscolhida = Provider.of<ListaMeusDados>(context, listen: false).getListaEscolhida;
 
           var listaMeusDados = providerContainer.read(listaMeusDadosProvider);
 
           listaMeusDados.setListaEscolhida(data);
           listaEscolhida = listaMeusDados.getListaEscolhida;
-          print(listaEscolhida);
-          print(listaEscolhida[0].nome);
 
           listaMostrar = listaEscolhida.map((element) => element.nome.toString()).toList().toSet().toList();
+          listaMostrar.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValue = listaMostrar.isNotEmpty ? listaMostrar.first : '';
 
           listaMostrarMetrica = listaEscolhida.where((element) => element.nome==dropdownValue).map((e) => e.metrica.toString()).toSet().toList();
+          listaMostrarMetrica.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValueMetrica = listaMostrarMetrica.first;
 
           listaMostrarNivelGeog = listaEscolhida.where((element) => element.nome==dropdownValue &&
               element.metrica==dropdownValueMetrica).map((e) => e.nivelGeografico.toString()).toSet().toList();
+          listaMostrarNivelGeog.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValueNivelGeog = listaMostrarNivelGeog.first;
 
           listaMostrarLocalidade = listaEscolhida.where((element) => element.nome==dropdownValue &&
               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog).map((e) => e.localidades.toString()).toSet().toList();
+          listaMostrarLocalidade.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValueLocalidade = listaMostrarLocalidade.first;
 
           listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
               element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
+          listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValueCategoria = listaMostrarCategoria.first;
 
           urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
@@ -342,13 +356,8 @@ class _TelaDados extends State<TelaDados> {
               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
               element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
 
-          //initialIndex = valorToggle?.firstWhere((element) => element.id==cod_serie).valorToggle;
           initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
 
-          print("initialIndex: ${initialIndex}");
-          print("valorToggle: ${valorToggle}");
-
-          print("cod_serie: ${cod_serie}");
           if(initialIndex==null){
             initialIndex = 0;
             preencherDados(cod_serie);
@@ -377,82 +386,22 @@ class _TelaDados extends State<TelaDados> {
             formatoData = "MM/yyyy";
             formatoDataGrafico = "MM/yy";
           }
-          print("teset");
-          (fonte == "Banco Central do Brasil") ? loadDataSGS() : loadDataIBGE();
+          if(fonte == "Banco Central do Brasil"){
+            loadDataSGS();
+          } else if(fonte == "Banco Central do Brasil - Pesquisa Focus"){
+            loadDataFocus();
+          } else {
+            loadDataIBGE();
+          }
         });
 
     }).catchError((error) {
-      print("erro aqui");
       setState(() {
         listaEscolhida = [];
       });
     });
 
-    // listaEscolhida = _listaSeries.where((element) => element.idAssunto==codAssunto).toList();
-
     dropdownValue = "1";
-
-    /*listaMostrar = dataList.map((element) => element.nome.toString()).toList().toSet().toList();
-
-    dropdownValue = listaMostrar.first;
-
-    listaMostrarMetrica = listaEscolhida.where((element) => element.nome==dropdownValue).map((e) => e.metrica.toString()).toSet().toList();
-    dropdownValueMetrica = listaMostrarMetrica.first;
-
-    listaMostrarNivelGeog = listaEscolhida.where((element) => element.nome==dropdownValue &&
-    element.metrica==dropdownValueMetrica).map((e) => e.nivelGeografico.toString()).toSet().toList();
-    dropdownValueNivelGeog = listaMostrarNivelGeog.first;
-
-    listaMostrarLocalidade = listaEscolhida.where((element) => element.nome==dropdownValue &&
-        element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog).map((e) => e.localidades.toString()).toSet().toList();
-    dropdownValueLocalidade = listaMostrarLocalidade.first;
-
-    listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
-        element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-    element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
-    dropdownValueCategoria = listaMostrarCategoria.first;
-
-    urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-        element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-        element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).urlAPI;
-
-    fonte = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-        element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-        element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).fonte;
-
-    cod_serie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-        element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-        element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
-
-    nomeSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-        element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-        element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).nome;
-
-    formatoSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-        element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-        element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).formato;
-
-    periodicidade = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-        element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-        element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).periodicidade;*/
-
- /*   if(periodicidade=="anual"){
-      formatoData = "yyyy";
-      formatoDataGrafico = "yyyy";
-    } else if(periodicidade=="diária"){
-      formatoData = "dd/MM/yyyy";
-      formatoDataGrafico = "dd/MM/yy";
-    } else {
-      formatoData = "MM/yyyy";
-      formatoDataGrafico = "MM/yy";
-    }
-
-    chartData.clear();
-    if(fonte=="Banco Central do Brasil"){
-      loadDataSGS();
-    } else {
-      loadDataIBGE();
-    }*/
   }
 
 
@@ -476,7 +425,6 @@ class _TelaDados extends State<TelaDados> {
       ),
     );
   }
-
 
   void preencherDados(String numero_serie) async {
       var fido = Toggle_reg(id: numero_serie, valorToggle: 0, dataCompara: '');
@@ -618,7 +566,6 @@ class _TelaDados extends State<TelaDados> {
                   setState(() {
                     anoInicialSelecionado = selectedItem;
                     dateInputIni.text = formattedDate;
-                    //startval1 = DateFormat("MM/yyyy").parse(formattedDate);
                     startval1 = DateFormat("yyyy-MM-dd").parse(formattedDate);
                   });
                 },
@@ -774,14 +721,6 @@ class _TelaDados extends State<TelaDados> {
       valorItemHeightMetrica = 50.0;
     }
 
-/*
-    if((anoInicialSelecionado==null||anoInicialSelecionado<0)&&chartData.isNotEmpty){
-      listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
-      anoInicialSelecionado = listaAnosSerieAnual.length-13;
-    }
-
-*/
-
     return Scaffold(
         appBar: AppBar(
           title: Text("Visualize os dados", style: TextStyle(color: Colors.white) ),
@@ -817,70 +756,6 @@ class _TelaDados extends State<TelaDados> {
                                       return Center(child: Text('No data found.'));
                                       } else {
                                         List<DadosSeries> listaEscolhida = snapshot.data!;
-
-                                        /*setState(() {
-                                          listaMostrar = listaEscolhida.map((element) => element.nome.toString()).toList().toSet().toList();
-                                          dropdownValue = listaMostrar.isNotEmpty ? listaMostrar.first : '';
-
-                                          listaMostrarMetrica = listaEscolhida.where((element) => element.nome==dropdownValue).map((e) => e.metrica.toString()).toSet().toList();
-                                          dropdownValueMetrica = listaMostrarMetrica.first;
-
-                                          listaMostrarNivelGeog = listaEscolhida.where((element) => element.nome==dropdownValue &&
-                                              element.metrica==dropdownValueMetrica).map((e) => e.nivelGeografico.toString()).toSet().toList();
-                                          dropdownValueNivelGeog = listaMostrarNivelGeog.first;
-
-                                          listaMostrarLocalidade = listaEscolhida.where((element) => element.nome==dropdownValue &&
-                                              element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog).map((e) => e.localidades.toString()).toSet().toList();
-                                          dropdownValueLocalidade = listaMostrarLocalidade.first;
-
-                                          listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
-                                              element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-                                              element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
-                                          dropdownValueCategoria = listaMostrarCategoria.first;
-
-                                          urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-                                              element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-                                              element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).urlAPI;
-                                          fonte = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-                                              element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-                                              element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).fonte;
-                                          cod_serie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-                                              element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-                                              element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
-
-                                          //initialIndex = valorToggle?.firstWhere((element) => element.id==cod_serie).valorToggle;
-                                          initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
-
-                                          print("cod_serie: ${cod_serie}");
-                                          if(initialIndex==null){
-                                            initialIndex = 0;
-                                            preencherDados(cod_serie);
-                                          } else {
-                                            initialIndex = initialIndex.valorToggle;
-                                          }
-                                          nomeSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-                                              element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-                                              element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).nome;
-                                          formatoSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-                                              element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-                                              element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).formato;
-
-                                          periodicidade = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
-                                              element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
-                                              element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).periodicidade;
-
-                                          if(periodicidade=="anual"){
-                                            formatoData = "yyyy";
-                                            formatoDataGrafico = "yyyy";
-                                          } else if(periodicidade=="diária"){
-                                            formatoData = "dd/MM/yyyy";
-                                            formatoDataGrafico = "dd/MM/yy";
-                                          } else {
-                                            formatoData = "MM/yyyy";
-                                            formatoDataGrafico = "MM/yy";
-                                          }
-                                        });*/
-
                                         return  Column(
                                               children: <Widget>[
                                                 Container(
@@ -916,18 +791,26 @@ class _TelaDados extends State<TelaDados> {
                                                         setState(() {
                                                           //listaMostrar = listaEscolhida.map((element) => element.nome.toString()).toList().toSet().toList();
                                                           dropdownValue = value!;
-                                                           listaMostrarMetrica = listaEscolhida.where((element) => element.nome==dropdownValue).map((e) => e.metrica.toString()).toSet().toList();
+                                                          listaMostrarMetrica = listaEscolhida.where((element) => element.nome==dropdownValue).map((e) => e.metrica.toString()).toSet().toList();
+                                                          listaMostrarMetrica.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                           dropdownValueMetrica = listaMostrarMetrica.first;
+
                                                           listaMostrarNivelGeog = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                               element.metrica==dropdownValueMetrica).map((e) => e.nivelGeografico.toString()).toSet().toList();
+                                                          listaMostrarNivelGeog.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                           dropdownValueNivelGeog = listaMostrarNivelGeog.first;
+
                                                           listaMostrarLocalidade = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog).map((e) => e.localidades.toString()).toSet().toList();
+                                                          listaMostrarLocalidade.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                           dropdownValueLocalidade = listaMostrarLocalidade.first;
+
                                                           listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                               element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
+                                                          listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                           dropdownValueCategoria = listaMostrarCategoria.first;
+
                                                           urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                               element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).urlAPI;
@@ -938,7 +821,6 @@ class _TelaDados extends State<TelaDados> {
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                               element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
 
-                                                          //initialIndex = valorToggle?.firstWhere((element) => element.id==cod_serie).valorToggle;
                                                           initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
 
                                                           if(initialIndex==null){
@@ -970,10 +852,11 @@ class _TelaDados extends State<TelaDados> {
                                                           chartData.clear();
                                                           if(fonte=="Banco Central do Brasil"){
                                                             loadDataSGS();
-                                                          } else {
+                                                          } else if(fonte == "IBGE")  {
                                                             loadDataIBGE();
+                                                          } else {
+                                                            loadDataFocus();
                                                           }
-                                                          //atualizarAnoInicial();
                                                         });
                                                       },
                                                       items: listaMostrar.map<DropdownMenuItem<String>>((String value) {
@@ -1027,14 +910,20 @@ class _TelaDados extends State<TelaDados> {
                                                             dropdownValueMetrica = value!;
                                                             listaMostrarNivelGeog = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica).map((e) => e.nivelGeografico.toString()).toSet().toList();
+                                                            listaMostrarNivelGeog.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueNivelGeog = listaMostrarNivelGeog.first;
+
                                                             listaMostrarLocalidade = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog).map((e) => e.localidades.toString()).toSet().toList();
+                                                            listaMostrarLocalidade.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueLocalidade = listaMostrarLocalidade.first;
+
                                                             listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
+                                                            listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueCategoria = listaMostrarCategoria.first;
+
                                                             urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).urlAPI;
@@ -1044,7 +933,7 @@ class _TelaDados extends State<TelaDados> {
                                                             cod_serie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
-                                                            //initialIndex = valorToggle?.firstWhere((element) => element.id==cod_serie).valorToggle;
+
                                                             initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
                                                             if(initialIndex==null){
                                                               initialIndex = 0;
@@ -1071,10 +960,11 @@ class _TelaDados extends State<TelaDados> {
                                                             chartData.clear();
                                                             if(fonte=="Banco Central do Brasil"){
                                                               loadDataSGS();
-                                                            } else {
+                                                            } else if(fonte == "IBGE")  {
                                                               loadDataIBGE();
+                                                            } else {
+                                                              loadDataFocus();
                                                             }
-                                                            //atualizarAnoInicial();
                                                           });
                                                         },
                                                         items: listaMostrarMetrica.map<DropdownMenuItem<String>>((String value) {
@@ -1126,11 +1016,15 @@ class _TelaDados extends State<TelaDados> {
                                                             dropdownValueNivelGeog = value!;
                                                             listaMostrarLocalidade = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog).map((e) => e.localidades.toString()).toSet().toList();
+                                                            listaMostrarLocalidade.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueLocalidade = listaMostrarLocalidade.first;
+
                                                             listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
+                                                            listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueCategoria = listaMostrarCategoria.first;
+
                                                             urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).urlAPI;
@@ -1140,7 +1034,7 @@ class _TelaDados extends State<TelaDados> {
                                                             cod_serie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
-                                                            //initialIndex = valorToggle?.firstWhere((element) => element.id==cod_serie).valorToggle;
+
                                                             initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
                                                             if(initialIndex==null){
                                                               initialIndex = 0;
@@ -1167,10 +1061,11 @@ class _TelaDados extends State<TelaDados> {
                                                             chartData.clear();
                                                             if(fonte=="Banco Central do Brasil"){
                                                               loadDataSGS();
-                                                            } else {
+                                                            } else if(fonte == "IBGE")  {
                                                               loadDataIBGE();
+                                                            } else {
+                                                              loadDataFocus();
                                                             }
-                                                            //atualizarAnoInicial();
                                                           });
                                                         },
                                                         items: listaMostrarNivelGeog.map<DropdownMenuItem<String>>((String value) {
@@ -1223,6 +1118,7 @@ class _TelaDados extends State<TelaDados> {
                                                             listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
+                                                            listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueCategoria = listaMostrarCategoria.first;
                                                             urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
@@ -1233,7 +1129,7 @@ class _TelaDados extends State<TelaDados> {
                                                             cod_serie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
-                                                            //initialIndex = valorToggle?.firstWhere((element) => element.id==cod_serie).valorToggle;
+
                                                             initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
                                                             if(initialIndex==null){
                                                               initialIndex = 0;
@@ -1260,10 +1156,11 @@ class _TelaDados extends State<TelaDados> {
                                                             chartData.clear();
                                                             if(fonte=="Banco Central do Brasil"){
                                                               loadDataSGS();
-                                                            } else {
+                                                            } else if(fonte == "IBGE")  {
                                                               loadDataIBGE();
+                                                            } else {
+                                                              loadDataFocus();
                                                             }
-                                                            //atualizarAnoInicial();
                                                           });
                                                         },
                                                         items: listaMostrarLocalidade.map<DropdownMenuItem<String>>((String value) {
@@ -1355,10 +1252,11 @@ class _TelaDados extends State<TelaDados> {
                                                                 chartData.clear();
                                                                 if(fonte=="Banco Central do Brasil"){
                                                                   loadDataSGS();
-                                                                } else {
+                                                                } else if(fonte == "IBGE")  {
                                                                   loadDataIBGE();
+                                                                } else {
+                                                                  loadDataFocus();
                                                                 }
-                                                                //atualizarAnoInicial();
                                                               });
                                                             },
                                                             items: listaMostrarCategoria.map<DropdownMenuItem<String>>((String value) {
@@ -1442,7 +1340,6 @@ class _TelaDados extends State<TelaDados> {
                                                             } else {  // "Não" selected
                                                               await stopService();
                                                             }
-
                                                             bool running = await isServiceRunning();
                                                             print("running: $running");
                                                           },
@@ -1533,6 +1430,8 @@ class _TelaDados extends State<TelaDados> {
                                                                     MaterialPageRoute(builder: (context) => DescricaoSeries(cod_series: cod_serie,))
                                                                 );
                                                               },
+                                                              style: ButtonStyle(foregroundColor: WidgetStateProperty.all(Colors.white),
+                                                              backgroundColor: WidgetStateProperty.all(Color(0xFF42A5F5))),
                                                               child: Text("Descrição da série")
                                                           ),
                                                         ],
@@ -1593,6 +1492,26 @@ class _TelaDados extends State<TelaDados> {
                                                     ),
                                                   ],
                                                 ),
+                                                Padding(
+                                                  padding: EdgeInsets.only(bottom: 15),
+                                                  child: Text(
+                                                    "Fonte: $fonte",
+                                                    style: TextStyle(fontSize: 10),
+                                                  ),
+                                                ),
+                                                OutlinedButton(
+                                                    onPressed: (){
+                                                      Navigator.push(
+                                                          context,
+                                                          MaterialPageRoute(builder: (context) => ReportarErro(codigoSerie: cod_serie,))
+                                                      );
+                                                    },
+                                                    style: ButtonStyle(
+                                                        foregroundColor: WidgetStateProperty.all(Colors.white),
+                                                        backgroundColor: WidgetStateProperty.all(Color(0xFFBE3144))),
+                                                    child: Text("Reportar erro")
+                                                ),
+                                                Padding(padding: EdgeInsets.only(bottom: 10))
                                               ],
                                             );
                                         }
@@ -1611,8 +1530,3 @@ class _TelaDados extends State<TelaDados> {
     );
   }
 }
-
-
-
-
-
