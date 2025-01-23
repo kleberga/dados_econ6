@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'TelaDados.dart';
@@ -70,7 +72,6 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    // chamar a função anterior
     fetchData();
   }
 

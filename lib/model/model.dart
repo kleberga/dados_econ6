@@ -15,7 +15,6 @@ class DadosSeries {
   final String periodicidade;
   final String urlAPI;
 
-
   DadosSeries({
     required this.categoria,
     required this.descricao,

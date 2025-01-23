@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dados_economicos6/model/variables_class.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:intl/intl.dart';
 import 'screens/TelaDados.dart';
 import 'service/back_services.dart';
@@ -27,6 +28,7 @@ Future<void> main() async {
   // the application's lifecycle, handling input gestures, and triggering the build
   // and layout of widgets.
   WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -66,6 +68,3 @@ Future<void> main() async {
     )
 );
 }
-
-
-
