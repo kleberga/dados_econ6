@@ -5,24 +5,5 @@ workflows:
       groups:
         - default
     scripts:
-      - name: Create local .env file
-        script: |
-          echo "FIREBASE_WEB_API_KEY=$FIREBASE_WEB_API_KEY" > .env
-          echo "FIREBASE_WEB_APPID=$FIREBASE_WEB_APPID" >> .env
-          echo "FIREBASE_WEB_MEASUREMENTID=$FIREBASE_WEB_MEASUREMENTID" >> .env
-          echo "FIREBASE_ANDROID_API_KEY=$FIREBASE_ANDROID_API_KEY" >> .env
-          echo "FIREBASE_ANDROID_APPID=$FIREBASE_ANDROID_APPID" >> .env
-          echo "FIREBASE_IOS_MACOS_API_KEY=$FIREBASE_IOS_MACOS_API_KEY" >> .env
-          echo "FIREBASE_IOS_MACOS_APPID=$FIREBASE_IOS_MACOS_APPID" >> .env
-          echo "FIREBASE_IOS_MACOS_IOSBUNDLEID=$FIREBASE_IOS_MACOS_IOSBUNDLEID" >> .env
-          echo "FIREBASE_WINDOWS_API_KEY=$FIREBASE_WINDOWS_API_KEY" >> .env
-          echo "FIREBASE_WINDOWS_APPID=$FIREBASE_WINDOWS_APPID" >> .env
-          echo "FIREBASE_WINDOWS_MEASUREMENTID=$FIREBASE_WINDOWS_MEASUREMENTID" >> .env
-          echo "FIREBASE_MESSAGINGSENDERID=$FIREBASE_MESSAGINGSENDERID" >> .env
-          echo "FIREBASE_PROJECTID=$FIREBASE_PROJECTID" >> .env
-          echo "FIREBASE_AUTHDOMAIN=$FIREBASE_AUTHDOMAIN" >> .env
-          echo "FIREBASE_STORAGEBUCKET=$FIREBASE_STORAGEBUCKET" >> .env
       - name: Build Flutter app
         script: flutter build
-      - name: Check .env file
-        script: cat .env
