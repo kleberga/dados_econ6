@@ -1,7 +1,7 @@
 scripts:
   - name: Create local .env file
     script: |
-      echo "FIREBASE_WEB_API_KEY=$FIREBASE_WEB_API_KEY" > .env
+      echo "FIREBASE_WEB_API_KEY=$FIREBASE_WEB_API_KEY" >> .env
       echo "FIREBASE_WEB_APPID=$FIREBASE_WEB_APPID" >> .env
       echo "FIREBASE_WEB_MEASUREMENTID=$FIREBASE_WEB_MEASUREMENTID" >> .env
       echo "FIREBASE_ANDROID_API_KEY=$FIREBASE_ANDROID_API_KEY" >> .env
