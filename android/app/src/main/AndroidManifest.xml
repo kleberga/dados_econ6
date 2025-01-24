@@ -49,7 +49,7 @@
 </manifest>
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.dados_economicos6">
+    package="com.foxApps.dados_economicos6">
 
     <application
         android:enableOnBackInvokedCallback="true"
