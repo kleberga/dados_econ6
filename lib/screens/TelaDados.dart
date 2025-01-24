@@ -84,8 +84,8 @@ class _TelaDados extends State<TelaDados> {
 
   InterstitialAd? _interstitialAd;
   final adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/1033173712'
-      : 'ca-app-pub-3940256099942544/4411468910';
+      ? 'ca-app-pub-5086029981237773~6023541382'
+      : 'ca-app-pub-5086029981237773~1901760712';
 
   void loadAd() {
     InterstitialAd.load(
