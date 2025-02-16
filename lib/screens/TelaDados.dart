@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
+import 'package:archive/archive.dart';
 import 'package:collection/collection.dart';
 import 'package:dados_economicos6/provider/riverpod.dart';
 import 'package:dados_economicos6/screens/reportar_erro.dart';
 import 'package:dados_economicos6/model/variables_class.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:http/http.dart' as http;
@@ -23,6 +25,7 @@ import '../model/model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
 import 'package:diacritic/diacritic.dart';
+import 'package:flutter/services.dart' as rootBundle;
 
 String dropdownValue = "";
 String dropdownValueMetrica = "";
@@ -38,6 +41,8 @@ List<String> listaMostrarMetrica = [];
 List<String> listaMostrarNivelGeog = [];
 List<String> listaMostrarLocalidade = [];
 List<String> listaMostrarCategoria = [];
+List<String>  listaMostrarCategoria_aux = [];
+
 var fonte;
 var cod_serie;
 var initialIndex;
@@ -160,15 +165,20 @@ class _TelaDados extends State<TelaDados> {
     jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
     jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
     jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
+    var pattern11 = RegExp(r'<head>\s*{[^}]*}');
+    jsonString2 = jsonString2.replaceAll(pattern11, '');
     jsonString2 = jsonString2.replaceAll('<head>', '');
     jsonString2 = jsonString2.replaceAll('<title>Requisição inválida!</title>', '');
     jsonString2 = jsonString2.replaceAll('<link rev="made" />', '');
     jsonString2 = jsonString2.replaceAll('<style>', '');
-    jsonString2 = jsonString2.replaceAll('a:link    {color:#0036D7; text-decoration: none;}		/* #4D749F */', '');
-    jsonString2 = jsonString2.replaceAll('a:hover   {color:#3366ff;}', '');
-    jsonString2 = jsonString2.replaceAll('a:active  {color:#0036D7;}', '');
-    jsonString2 = jsonString2.replaceAll('a:link	  {color:#0036D7;}', '');
-    jsonString2 = jsonString2.replaceAll('a:link	  {color:#0036D7;}', '');
+    var pattern1 = RegExp(r'a:link\s*{[^}]*}');
+    jsonString2 = jsonString2.replaceAll(pattern1, '');
+    var pattern2 = RegExp(r'a:hover\s*{[^}]*}');
+    jsonString2 = jsonString2.replaceAll(pattern2, '');
+    var pattern4 = RegExp(r'a:active\s*{[^}]*}');
+    jsonString2 = jsonString2.replaceAll(pattern4, '');
+    var pattern5 = RegExp(r'a:visited\s*{[^}]*}');
+    jsonString2 = jsonString2.replaceAll(pattern5, '');
     final jsonResponse = json.decode(jsonString2);
     if(chartData.isNotEmpty){
       chartData.clear();
@@ -179,7 +189,6 @@ class _TelaDados extends State<TelaDados> {
           chartData.add(serie_app.fromJson(i));
         }
       }
-
       chartData.sort((a, b){ //sorting in descending order
         return a.data.compareTo(b.data);
       });
@@ -188,8 +197,16 @@ class _TelaDados extends State<TelaDados> {
       dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
       dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
       listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
-      anoInicialSelecionado = listaAnosSerieAnual.length-13;
-      anoFinalSelecionado = listaAnosSerieAnual.length-1;
+      if(listaAnosSerieAnual.length>13){
+        anoInicialSelecionado = listaAnosSerieAnual.length-13;
+      } else {
+        anoInicialSelecionado = listaAnosSerieAnual.length;
+      }
+      if(listaAnosSerieAnual.length>0){
+        anoFinalSelecionado = listaAnosSerieAnual.length-1;
+      } else {
+        anoFinalSelecionado = listaAnosSerieAnual.length;
+      }
     });
     ultimaDataIPCA = chartData.last.data;
     final prefs = await SharedPreferences.getInstance();
@@ -212,7 +229,6 @@ class _TelaDados extends State<TelaDados> {
       chartData.clear();
     }
     List<serie_app_focus> chartDataFocus = [];
-
     for (Map<String, dynamic> i in jsonResponse['value']){
       if(i['Mediana']!=""&&i['Mediana']!=null){
         if(periodicidade=="trimestral") {
@@ -260,7 +276,9 @@ class _TelaDados extends State<TelaDados> {
 
   Future loadDataIBGE() async {
     String jsonString = await getJsonFromRestAPI(urlSerie);
-    final jsonResponse = json.decode(jsonString);
+    var pattern1 = RegExp(r'/* #4D749F */\s*{[^}]*}');
+    var jsonString2 = jsonString.replaceAll(pattern1, '');
+    final jsonResponse = json.decode(jsonString2);
     final item = jsonResponse[0]['resultados'][0]['series'][0]['serie'];
     if(chartData.isNotEmpty){
       chartData.clear();
@@ -283,7 +301,7 @@ class _TelaDados extends State<TelaDados> {
         //x = formatter1.format(int.parse(x.substring(4))) + "/" + formatter2.format(int.parse(x.substring(0, 4)));
         x = w + "/" + formatter2.format(int.parse(x.substring(0, 4)));
         var y = item.values.toList()[i].toString();
-        if(y!="..."&&y!="-"){
+        if(y!="..."&&y!="-"&&y!="X"){
           chartData.add(
               serie_app(
                   DateFormat('MM/yyyy').parse(x),
@@ -299,11 +317,23 @@ class _TelaDados extends State<TelaDados> {
       dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
       ultimaDataIPCA = chartData.last.data;
       listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
-      anoInicialSelecionado = listaAnosSerieAnual.length-13;
-      anoFinalSelecionado = listaAnosSerieAnual.length-1;
+      if(listaAnosSerieAnual.length>13){
+        anoInicialSelecionado = listaAnosSerieAnual.length-13;
+      } else {
+        anoInicialSelecionado = listaAnosSerieAnual.length;
+      }
+      if(listaAnosSerieAnual.length>0){
+        anoFinalSelecionado = listaAnosSerieAnual.length-1;
+      } else {
+        anoFinalSelecionado = listaAnosSerieAnual.length;
+      }
     });
     endval1 = chartData.last.data;
-    startval1 = chartData[chartData.length-13].data;
+    if(chartData.length>13){
+      startval1 = chartData[chartData.length-13].data;
+    } else {
+      startval1 = chartData.first.data;
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('dataFinal', endval1.toString());
   }
@@ -336,7 +366,7 @@ class _TelaDados extends State<TelaDados> {
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  Future<List<DadosSeries>> fetchData(String codAssunto) async {
+/*  Future<List<DadosSeries>> fetchData(String codAssunto) async {
     // Initialize Firestore instance
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     // Reference the collection you want to query
@@ -346,6 +376,24 @@ class _TelaDados extends State<TelaDados> {
     return querySnapshot.docs.map((doc) {
       return DadosSeries.fromFirestore(doc);
     }).toList();
+  }*/
+
+  Future<List<DadosSeries>> fetchData(String codAssunto) async {
+
+    var arquivo = 'lib/database/'+codAssunto+'.json.gz';
+    // carregar o arquivo GZIP
+    ByteData data = await rootBundle.rootBundle.load(arquivo);
+    // Decodificar o arquivo Gzip
+    List<int> bytes = data.buffer.asUint8List();
+    List<int> decompressed = GZipDecoder().decodeBytes(bytes);
+    // Decode os dados em JSON
+    String jsonString = utf8.decode(decompressed);
+    List<dynamic> jsonData = json.decode(jsonString);
+    // transformar os dados
+    List<DadosSeries> transformedData = jsonData.map((item) => DadosSeries.fromJson(item)).toList();
+    // ordenar os dados
+    transformedData.sort((a, b) => removeDiacritics(a.nome).compareTo(removeDiacritics(b.nome)));
+    return transformedData;
   }
 
   late Future<List<DadosSeries>> api1Future;
@@ -366,6 +414,19 @@ class _TelaDados extends State<TelaDados> {
           listaMeusDados.setListaEscolhida(data);
           listaEscolhida = listaMeusDados.getListaEscolhida;
 
+/*          bool isNumeroUnique(List<DadosSeries> array) {
+            Set<String> uniqueNumeros = {};
+            for (var obj in array) {
+              if (uniqueNumeros.contains(obj.numero)) {
+                return false; // Duplicate found
+              } else {
+                uniqueNumeros.add(obj.numero);
+              }
+            }
+            return true; // All values are unique
+          }
+          print("É único ${isNumeroUnique(listaEscolhida)}"); */// Output: true
+
           listaMostrar = listaEscolhida.map((element) => element.nome.toString()).toList().toSet().toList();
           listaMostrar.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValue = listaMostrar.isNotEmpty ? listaMostrar.first : '';
@@ -384,10 +445,30 @@ class _TelaDados extends State<TelaDados> {
           listaMostrarLocalidade.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValueLocalidade = listaMostrarLocalidade.first;
 
-          listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
+          listaMostrarCategoria_aux = listaEscolhida.where((element) => element.nome==dropdownValue &&
               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
               element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
-          listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+
+          // Separar o indice geral em um objeto a parte
+          String? specialAssunto;
+          List<String> otherAssuntos = [];
+          for (var assunto in listaMostrarCategoria_aux) {
+            if (removeDiacritics(assunto).toLowerCase() == 'indice geral') {
+              specialAssunto = assunto;
+            } else {
+              otherAssuntos.add(assunto);
+            }
+          }
+          // ordenar os dados
+          otherAssuntos.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+          listaMostrarCategoria = [];
+          // combinar o objeto com o indice geral e a lista ordenada
+          if (specialAssunto != null) {
+            listaMostrarCategoria.add(specialAssunto);
+          }
+          listaMostrarCategoria.addAll(otherAssuntos);
+
+          //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValueCategoria = listaMostrarCategoria.first;
 
           urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
@@ -477,7 +558,7 @@ class _TelaDados extends State<TelaDados> {
 
   Widget metodoSelecaoInicial(String periodicidadeSerie){
     if(listaAnosSerieAnual.isNotEmpty){
-      if (periodicidadeSerie == "mensal" || periodicidadeSerie == "trimestral") {
+      if (periodicidadeSerie == "mensal" || periodicidadeSerie == "trimestral" || periodicidadeSerie == "semestral") {
         return Column(
           children: [
             TextField(
@@ -851,10 +932,33 @@ class _TelaDados extends State<TelaDados> {
                                                           listaMostrarLocalidade.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                           dropdownValueLocalidade = listaMostrarLocalidade.first;
 
-                                                          listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
+                                                          listaMostrarCategoria_aux = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                               element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
-                                                          listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+
+
+                                                          // Separar o indice geral em um objeto a parte
+                                                          String? specialAssunto;
+                                                          List<String> otherAssuntos = [];
+                                                          for (var assunto in listaMostrarCategoria_aux) {
+                                                            if (removeDiacritics(assunto).toLowerCase() == 'indice geral') {
+                                                              specialAssunto = assunto;
+                                                            } else {
+                                                              otherAssuntos.add(assunto);
+                                                            }
+                                                          }
+                                                          // ordenar os dados
+                                                          otherAssuntos.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+
+                                                          listaMostrarCategoria = [];
+                                                          // combinar o objeto com o indice geral e a lista ordenada
+                                                          if (specialAssunto != null) {
+                                                            listaMostrarCategoria.add(specialAssunto);
+                                                          }
+                                                          listaMostrarCategoria.addAll(otherAssuntos);
+
+
+                                                          //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                           dropdownValueCategoria = listaMostrarCategoria.first;
 
                                                           urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
@@ -964,10 +1068,32 @@ class _TelaDados extends State<TelaDados> {
                                                             listaMostrarLocalidade.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueLocalidade = listaMostrarLocalidade.first;
 
-                                                            listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
+                                                            listaMostrarCategoria_aux = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
-                                                            listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+
+
+                                                            // Separar o indice geral em um objeto a parte
+                                                            String? specialAssunto;
+                                                            List<String> otherAssuntos = [];
+                                                            for (var assunto in listaMostrarCategoria_aux) {
+                                                              if (removeDiacritics(assunto).toLowerCase() == 'indice geral') {
+                                                                specialAssunto = assunto;
+                                                              } else {
+                                                                otherAssuntos.add(assunto);
+                                                              }
+                                                            }
+                                                            // ordenar os dados
+                                                            otherAssuntos.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+                                                            // combinar o objeto com o indice geral e a lista ordenada
+                                                            listaMostrarCategoria = [];
+                                                            if (specialAssunto != null) {
+                                                              listaMostrarCategoria.add(specialAssunto);
+                                                            }
+                                                            listaMostrarCategoria.addAll(otherAssuntos);
+
+
+                                                            //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueCategoria = listaMostrarCategoria.first;
 
                                                             urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
@@ -1065,10 +1191,32 @@ class _TelaDados extends State<TelaDados> {
                                                             listaMostrarLocalidade.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueLocalidade = listaMostrarLocalidade.first;
 
-                                                            listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
+                                                            listaMostrarCategoria_aux = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
-                                                            listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+
+
+                                                            // Separar o indice geral em um objeto a parte
+                                                            String? specialAssunto;
+                                                            List<String> otherAssuntos = [];
+                                                            for (var assunto in listaMostrarCategoria_aux) {
+                                                              if (removeDiacritics(assunto).toLowerCase() == 'indice geral') {
+                                                                specialAssunto = assunto;
+                                                              } else {
+                                                                otherAssuntos.add(assunto);
+                                                              }
+                                                            }
+                                                            // ordenar os dados
+                                                            otherAssuntos.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+                                                            // combinar o objeto com o indice geral e a lista ordenada
+                                                            listaMostrarCategoria = [];
+                                                            if (specialAssunto != null) {
+                                                              listaMostrarCategoria.add(specialAssunto);
+                                                            }
+                                                            listaMostrarCategoria.addAll(otherAssuntos);
+
+
+                                                            //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueCategoria = listaMostrarCategoria.first;
 
                                                             urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
@@ -1161,10 +1309,32 @@ class _TelaDados extends State<TelaDados> {
                                                           // This is called when the user selects an item.
                                                           setState(() {
                                                             dropdownValueLocalidade = value!;
-                                                            listaMostrarCategoria = listaEscolhida.where((element) => element.nome==dropdownValue &&
+                                                            listaMostrarCategoria_aux = listaEscolhida.where((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
-                                                            listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+
+                                                            // Separar o indice geral em um objeto a parte
+                                                            String? specialAssunto;
+                                                            List<String> otherAssuntos = [];
+                                                            for (var assunto in listaMostrarCategoria_aux) {
+                                                              if (removeDiacritics(assunto).toLowerCase() == 'indice geral') {
+                                                                specialAssunto = assunto;
+                                                              } else {
+                                                                otherAssuntos.add(assunto);
+                                                              }
+                                                            }
+                                                            // ordenar os dados
+                                                            otherAssuntos.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
+                                                            // combinar o objeto com o indice geral e a lista ordenada
+                                                            listaMostrarCategoria = [];
+                                                            if (specialAssunto != null) {
+                                                              listaMostrarCategoria.add(specialAssunto);
+                                                            }
+                                                            listaMostrarCategoria.addAll(otherAssuntos);
+
+
+
+                                                            //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueCategoria = listaMostrarCategoria.first;
                                                             urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&

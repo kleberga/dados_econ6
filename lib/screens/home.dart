@@ -1,9 +1,13 @@
-import 'dart:io';
-
+import 'package:archive/archive.dart';
+import 'package:dados_economicos6/model/model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'TelaDados.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart' as rootBundle;
+import 'dart:convert';
+import 'package:diacritic/diacritic.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -13,11 +17,26 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<Widget> buttons = [];
+  bool _isLoading = false;
 
   void fetchData() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    QuerySnapshot snapshot = await firestore.collection('assunto').orderBy('normalized_nome').get();
-    List<Widget> fetchedButtons = snapshot.docs.map((doc) {
+    // QuerySnapshot snapshot = await firestore.collection('assunto').orderBy('normalized_nome').get();
+    // carregar o arquivo GZIP
+    ByteData data = await rootBundle.rootBundle.load('lib/database/assunto.json.gz');
+    // Decodificar o arquivo Gzip
+    List<int> bytes = data.buffer.asUint8List();
+    List<int> decompressed = GZipDecoder().decodeBytes(bytes);
+    // Decode os dados em JSON
+    String jsonString = utf8.decode(decompressed);
+    List<dynamic> jsonData = json.decode(jsonString);
+    // transformar os dados
+    List<Assunto> transformedData = jsonData.map((item) => Assunto.fromJson(item)).toList();
+
+    transformedData.sort((a, b) => removeDiacritics(a.nome).compareTo(removeDiacritics(b.nome)));
+    //List<Widget> fetchedButtons = snapshot.docs.map((doc) {
+
+    List<Widget> fetchedButtons = transformedData.map((doc) {
       return Padding(
           padding: EdgeInsets.only(top: 20, bottom: 10),
           child: Center(
@@ -41,17 +60,30 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   onPressed: (){
+                    setState(() {
+                      _isLoading = true;
+                    });
+/*                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => TelaDados(assuntoSerie: doc.normalized_nome,)
+                        )
+                    );*/
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => TelaDados(assuntoSerie: doc['normalized_nome'],)
-                        )
-                    );
+                            builder: (context) => TelaDados(assuntoSerie: doc.normalized_nome,)
+                        ),
+                    ).then((_) {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    });
                   },
-                  child: Text(doc['nome'], style: TextStyle(fontSize: 16, color: Colors.white),)
+                  child: Text(doc.nome, style: TextStyle(fontSize: 16, color: Colors.white),)
               ),
             ),
-          )
+          ),
       );
     }).toList();
     setState(() {
@@ -98,8 +130,16 @@ class _HomeState extends State<Home> {
         ),
       ),
       body:
-      Column(
-        children: buttons
+      Stack(
+        children: [
+          Column(
+            children: buttons,
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withAlpha(128),
+            ),
+        ],
       ),
       drawer: Drawer(
         child: ListView(

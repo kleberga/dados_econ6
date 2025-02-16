@@ -110,7 +110,7 @@ variaveis$nome <- gsub("IPCA - ","", variaveis$nome)
 variaveis <- variaveis[!variaveis$id%in%c(45,66),]
 # filtrar as categorias
 categorias <- ipca$classificacoes$categorias[[1]]
-categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
+# categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
 # url das localidades
 url_loc <- "https://servicodados.ibge.gov.br/api/v3/agregados/7060/localidades/N7%7CN6%7CN1"
 # carregar as localidades
@@ -172,7 +172,7 @@ teste2 <- as.data.frame(teste2)
 # apagar o numero das linhas
 row.names(teste2) <- NULL
 # exportar como csv
-write.csv(teste2, file="C:/Users/Kleber/Documents/ipca.csv", row.names = F)
+write.csv(teste2, file="C:/Users/Kleber/Documents/ipca_completo.csv", row.names = F)
 #_______________________________________________________________________________________________________________________
 # carregar os dados do IPCA-15 ----
 #_______________________________________________________________________________________________________________________

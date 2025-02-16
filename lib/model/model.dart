@@ -5,7 +5,7 @@ class DadosSeries {
   final String descricao;
   final String fonte;
   final String formato;
-  final int idAssunto;
+  final String idAssunto;
   final String localidades;
   final String metrica;
   final String nivelGeografico;
@@ -48,5 +48,38 @@ class DadosSeries {
       periodicidade: data['periodicidade'] ?? '',
       urlAPI: data['urlAPI'] ?? ''
     );
+  }
+  factory DadosSeries.fromJson(Map<String, dynamic> data) {
+    return DadosSeries(
+        categoria: data['categoria'] ?? '',
+        descricao: data['descricao'] ?? '',
+        fonte: data['fonte'] ?? '',
+        formato: data['formato'] ?? '',
+        idAssunto: data['idAssunto'] ?? '',
+        localidades: data['localidades'] ?? '',
+        metrica: data['metrica'] ?? '',
+        nivelGeografico: data['nivelGeografico'] ?? '',
+        nome: data['nome'] ?? '',
+        nomeCompleto: data['nomeCompleto'] ?? '',
+        numero: data['numero'] ?? '',
+        periodicidade: data['periodicidade'] ?? '',
+        urlAPI: data['urlAPI'] ?? ''
+    );
+  }
+}
+
+class Assunto{
+  final int id;
+  final String nome;
+  final String normalized_nome;
+
+  Assunto({
+    required this.id,
+    required this.nome,
+    required this.normalized_nome
+  });
+
+  factory Assunto.fromJson(Map<String, dynamic> json){
+    return Assunto(id: json['id'], nome: json['nome'], normalized_nome: json['normalized_nome']);
   }
 }

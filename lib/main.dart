@@ -36,16 +36,17 @@ Future<void> main() async {
   DateTime now = DateTime.now();
   String formattedDateTime = DateFormat('yyyy-MM-dd_HH:mm:ss.SSS').format(now);
 
-/*
-  var listaSeries = [
+
+
+/*  var listaSeries = [
 
   ];
 
  for(int i = 0;i< listaSeries.length; i++){
-    db.collection("projecoes").add(listaSeries[i]).then((DocumentReference doc) =>
+    db.collection("indice_precos").add(listaSeries[i]).then((DocumentReference doc) =>
         print('DocumentSnapshot added with ID: ${doc.id}'));
-  }
-*/
+  }*/
+
 
   NotificationService().initNotification();
   await Permission.notification.isDenied.then(

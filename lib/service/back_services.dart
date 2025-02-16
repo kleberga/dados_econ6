@@ -118,15 +118,38 @@ Future<bool> onIosBackground1(ServiceInstance service1) async {
 List<serie_app> listaBack = [];
 //var ultimaData;
 
+NumberFormat formatter1 = new NumberFormat("00");
+NumberFormat formatter2 = new NumberFormat("0000");
+
 Future loadDataSGS2() async {
   String jsonString = await getJsonFromRestAPI2();
-  final jsonResponse = json.decode(jsonString);
+  var jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
+  jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
+  jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
+  jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
+  var pattern11 = RegExp(r'<head>\s*{[^}]*}');
+  jsonString2 = jsonString2.replaceAll(pattern11, '');
+  jsonString2 = jsonString2.replaceAll('<head>', '');
+  jsonString2 = jsonString2.replaceAll('<title>Requisição inválida!</title>', '');
+  jsonString2 = jsonString2.replaceAll('<link rev="made" />', '');
+  jsonString2 = jsonString2.replaceAll('<style>', '');
+  var pattern1 = RegExp(r'a:link\s*{[^}]*}');
+  jsonString2 = jsonString2.replaceAll(pattern1, '');
+  var pattern2 = RegExp(r'a:hover\s*{[^}]*}');
+  jsonString2 = jsonString2.replaceAll(pattern2, '');
+  var pattern4 = RegExp(r'a:active\s*{[^}]*}');
+  jsonString2 = jsonString2.replaceAll(pattern4, '');
+  var pattern5 = RegExp(r'a:visited\s*{[^}]*}');
+  jsonString2 = jsonString2.replaceAll(pattern5, '');
+  final jsonResponse = json.decode(jsonString2);
   for (Map<String, dynamic> i in jsonResponse){
-    listaBack.add(serie_app.fromJson(i));
+    if(i['valor']!=""&&i['valor']!=null) {
+      listaBack.add(serie_app.fromJson(i));
+    }
   }
 }
 
-Future loadDataIBGE2() async {
+/*Future loadDataIBGE2() async {
   String jsonString = await getJsonFromRestAPI2();
   final jsonResponse = json.decode(jsonString);
   final item = jsonResponse[0]['resultados'][0]['series'][0]['serie'];
@@ -143,10 +166,44 @@ Future loadDataIBGE2() async {
       );
     }
   }
+}*/
+
+Future loadDataIBGE2() async {
+  String jsonString = await getJsonFromRestAPI2();
+  var pattern1 = RegExp(r'/* #4D749F */\s*{[^}]*}');
+  var jsonString2 = jsonString.replaceAll(pattern1, '');
+  final jsonResponse = json.decode(jsonString2);
+  final item = jsonResponse[0]['resultados'][0]['series'][0]['serie'];
+  for (var i = 0; i < item.keys
+      .toList()
+      .length; i++) {
+    var x = item.keys.toList()[i];
+    var w = formatter1.format(int.parse(x.substring(4)));
+    if (periodicidade == "trimestral") {
+      if (w == "01") {
+        w = "03";
+      } else if (w == "02") {
+        w = "06";
+      } else if (w == "03") {
+        w = "09";
+      } else {
+        w = "12";
+      }
+    }
+    x = w + "/" + formatter2.format(int.parse(x.substring(0, 4)));
+    var y = item.values.toList()[i].toString();
+    if (y != "..." && y != "-" && y != "X") {
+      listaBack.add(
+          serie_app(
+              DateFormat('MM/yyyy').parse(x),
+              double.parse(y)
+          )
+      );
+    }
+  }
 }
 
-NumberFormat formatter1 = new NumberFormat("00");
-NumberFormat formatter2 = new NumberFormat("0000");
+
 
 //List<Toggle_reg>? valorToggleBack;
 var dataArmazenada;

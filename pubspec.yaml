@@ -59,6 +59,7 @@ dependencies:
   timezone: ^0.10.0
   url_launcher: ^6.3.1
   google_mobile_ads: ^5.3.0
+  archive: ^4.0.2
 
 dev_dependencies:
   flutter_test:
@@ -86,12 +87,26 @@ flutter_native_splash:
     android_gravity: fill
     ios_content_mode: fill
 
+#flutter_launcher_icons:
+#  ios: true
+#  android: true
+#  image_path: assets/images/icone_economico_alterado4.png
+#  adaptive_icon_foreground: assets/images/icone_economico_alterado4.png
+#  adaptive_icon_background: assets/images/icone_economico_alterado4.png
+
 flutter_launcher_icons:
+  android: "launcher_icon"
   ios: true
-  android: true
-  image_path: assets/images/icone_economico_alterado3.png
-  adaptive_icon_foreground: assets/images/icone_economico_alterado3.png
-  adaptive_icon_background: assets/images/icone_economico_alterado3.png
+  web:
+    generate: true
+  windows:
+    generate: true
+  macos:
+    generate: true
+  remove_alpha_ios: true
+  image_path: assets/images/icone_economico_alterado4.png
+  adaptive_icon_foreground: assets/images/icone_economico_alterado4.png
+  adaptive_icon_background: assets/images/icone_economico_alterado4.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -109,12 +124,22 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
-    - images/icone_economico_alterado3.png
+    - images/icone_economico_alterado4.png
     - assets/images/dadoseco8.png
     - images/dadoseco8.png
     - images/dadoseco10.png
-    - assets/images/icone_economico_alterado3.png
+    - assets/images/icone_economico_alterado4.png
     - .env
+    - lib/database/assunto.json.gz
+    - lib/database/indice_precos.json.gz
+    - lib/database/setor_real.json.gz
+    - lib/database/mercado_trabalho.json.gz
+    - lib/database/setor_externo.json.gz
+    - lib/database/dados_monetarios.json.gz
+    - lib/database/credito.json.gz
+    - lib/database/fiscal.json.gz
+    - lib/database/projecoes.json.gz
+    - lib/database/agropecuaria.json.gz
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
