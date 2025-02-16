@@ -298,6 +298,13 @@ class _TelaDados extends State<TelaDados> {
             w = "12";
           }
         }
+        if(periodicidade=="semestral") {
+          if(w=="01"){
+            w = "06";
+          } else {
+            w = "12";
+          }
+        }
         //x = formatter1.format(int.parse(x.substring(4))) + "/" + formatter2.format(int.parse(x.substring(0, 4)));
         x = w + "/" + formatter2.format(int.parse(x.substring(0, 4)));
         var y = item.values.toList()[i].toString();
@@ -847,6 +854,8 @@ class _TelaDados extends State<TelaDados> {
     } else {
       valorItemHeightMetrica = 50.0;
     }
+
+    print("cod_serie: ${cod_serie}");
 
     return Scaffold(
         appBar: AppBar(
