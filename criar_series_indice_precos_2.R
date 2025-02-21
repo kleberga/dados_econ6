@@ -1251,7 +1251,7 @@ row.names(base_df) <- NULL
 
 # unir as bases
 
-base_df_2 <- bind_rows(base_ipca, base_inpc, base_ipca15, base_df)
+base_df_2 <- bind_rows(base_ipca, base_inpc, base_ipca15, base_df, base_sinapi_647, base_sinapi_2296, base_sinapi_6586)
 
 # exportar como csv
 write.csv(base_df_2, file="C:/Users/Kleber/Documents/indice_precos_2.csv", row.names = F)
