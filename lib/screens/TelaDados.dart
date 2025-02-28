@@ -164,6 +164,7 @@ class _TelaDados extends State<TelaDados> {
   TextEditingController dateInputIni = TextEditingController();
 
   Future loadDataSGS() async {
+    listaAnosSerieAnual.clear();
     http.Response response;
     String jsonString;
     var contador = 0;
@@ -235,6 +236,7 @@ class _TelaDados extends State<TelaDados> {
   }
 
   Future loadDataFocus() async {
+    listaAnosSerieAnual.clear();
     http.Response response;
     String jsonString;
     var contador = 0;
@@ -312,6 +314,7 @@ class _TelaDados extends State<TelaDados> {
   NumberFormat formatter2 = new NumberFormat("0000");
 
   Future loadDataIBGE() async {
+    listaAnosSerieAnual.clear();
     http.Response response;
     String jsonString;
     var contador = 0;
@@ -425,30 +428,7 @@ class _TelaDados extends State<TelaDados> {
     return output;
   }
 
- /* Future toggleDatabase() async {
-    valorToggle = await DatabaseHelper.getAllToggle();
-    initialIndex = valorToggle?.firstWhereOrNull((element) => element.id==cod_serie);
-    if(initialIndex==null){
-      preencherDados(cod_serie);
-      initialIndex = 0;
-    } else {
-      initialIndex = initialIndex.valorToggle;
-    }
-  }*/
-
   FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-/*  Future<List<DadosSeries>> fetchData(String codAssunto) async {
-    // Initialize Firestore instance
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    // Reference the collection you want to query
-    CollectionReference usersRef = firestore.collection(codAssunto);
-    QuerySnapshot querySnapshot = await usersRef.get();
-    // Convert the query results into a list of DadosSeries objects
-    return querySnapshot.docs.map((doc) {
-      return DadosSeries.fromFirestore(doc);
-    }).toList();
-  }*/
 
   Future<List<DadosSeries>> fetchData(String codAssunto) async {
 
@@ -803,7 +783,7 @@ class _TelaDados extends State<TelaDados> {
   @override
   Widget build(BuildContext context) {
 
-    //_interstitialAd?.show();
+    _interstitialAd?.show();
 
     Future<void> startService() async {
       await FlutterBackgroundService().startService();
@@ -1484,7 +1464,6 @@ class _TelaDados extends State<TelaDados> {
                                                         )
                                                     )
                                                 ),
-
                                                 Padding(padding: EdgeInsets.all(10)),
                                                 Text(
                                                   "Selecione o intervalo:",
