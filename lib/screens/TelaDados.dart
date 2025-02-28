@@ -45,7 +45,7 @@ List<String>  listaMostrarCategoria_aux = [];
 
 var fonte;
 var cod_serie;
-var initialIndex;
+//var initialIndex;
 List<Toggle_reg>? valorToggle = [];
 var isNotificationGranted;
 var nomeSerie;
@@ -68,6 +68,9 @@ var listaAnosSerieAnual = [];
 var anoInicialSelecionado;
 var anoFinalSelecionado;
 var dtInicial;
+var notFound = false;
+var notFoundText;
+
 DateTime startval1 = DateFormat(formatoData).parse('01/2021');
 DateTime endval1 = DateFormat(formatoData).parse('12/2021');
 var corFundo = Color.fromARGB(255, 63, 81, 181);
@@ -89,7 +92,8 @@ class _TelaDados extends State<TelaDados> {
 
   InterstitialAd? _interstitialAd;
   final adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-5086029981237773~6023541382'
+     // ? 'ca-app-pub-5086029981237773~6023541382'
+      ? 'ca-app-pub-3940256099942544/1033173712'
       : 'ca-app-pub-5086029981237773~1901760712';
 
   void loadAd() {
@@ -129,7 +133,7 @@ class _TelaDados extends State<TelaDados> {
   }
 
 
-  Future<String> getJsonFromRestAPI(String url_serie) async {
+  Future<http.Response> getJsonFromRestAPI(String url_serie) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('nomeSerieArmaz', nomeSerie);
     await prefs.setString('urlSerieArmaz', urlSerie);
@@ -140,7 +144,7 @@ class _TelaDados extends State<TelaDados> {
     await prefs.setString("categoriaArmaz", dropdownValueCategoria);
     String url = url_serie;
     http.Response response = await http.get(Uri.parse(url));
-    return response.body;
+    return response;
   }
 
   List<serie_app> chartData = [];
@@ -160,189 +164,250 @@ class _TelaDados extends State<TelaDados> {
   TextEditingController dateInputIni = TextEditingController();
 
   Future loadDataSGS() async {
-    String jsonString = await getJsonFromRestAPI(urlSerie);
-    var jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
-    jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
-    jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
-    jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
-    var pattern11 = RegExp(r'<head>\s*{[^}]*}');
-    jsonString2 = jsonString2.replaceAll(pattern11, '');
-    jsonString2 = jsonString2.replaceAll('<head>', '');
-    jsonString2 = jsonString2.replaceAll('<title>Requisição inválida!</title>', '');
-    jsonString2 = jsonString2.replaceAll('<link rev="made" />', '');
-    jsonString2 = jsonString2.replaceAll('<style>', '');
-    var pattern1 = RegExp(r'a:link\s*{[^}]*}');
-    jsonString2 = jsonString2.replaceAll(pattern1, '');
-    var pattern2 = RegExp(r'a:hover\s*{[^}]*}');
-    jsonString2 = jsonString2.replaceAll(pattern2, '');
-    var pattern4 = RegExp(r'a:active\s*{[^}]*}');
-    jsonString2 = jsonString2.replaceAll(pattern4, '');
-    var pattern5 = RegExp(r'a:visited\s*{[^}]*}');
-    jsonString2 = jsonString2.replaceAll(pattern5, '');
-    final jsonResponse = json.decode(jsonString2);
-    if(chartData.isNotEmpty){
-      chartData.clear();
-    }
-    setState(() {
-      for (Map<String, dynamic> i in jsonResponse){
-        if(i['valor']!=""&&i['valor']!=null){
-          chartData.add(serie_app.fromJson(i));
-        }
-      }
-      chartData.sort((a, b){ //sorting in descending order
-        return a.data.compareTo(b.data);
+    http.Response response;
+    String jsonString;
+    var contador = 0;
+    do {
+      response = await getJsonFromRestAPI(urlSerie);
+      jsonString = response.body;
+      contador = contador + 1;
+    } while(response.statusCode!=200 && contador<=10);
+    if(response.statusCode!=200){
+      setState(() {
+        notFound = true;
+        notFoundText = "Dados não disponíveis no momento. A fonte dos dados desta série pode estar temporariamente indisponível. Tente mais tarde!";
       });
-      endval1 = chartData.last.data;
-      startval1 = chartData[chartData.length-13].data;
-      dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
-      dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
-      listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
-      if(listaAnosSerieAnual.length>13){
-        anoInicialSelecionado = listaAnosSerieAnual.length-13;
-      } else {
-        anoInicialSelecionado = listaAnosSerieAnual.length;
+    } else {
+      setState(() {
+        notFound = false;
+      });
+      var jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
+      jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
+      jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
+      jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
+      var pattern11 = RegExp(r'<head>\s*{[^}]*}');
+      jsonString2 = jsonString2.replaceAll(pattern11, '');
+      jsonString2 = jsonString2.replaceAll('<head>', '');
+      jsonString2 = jsonString2.replaceAll('<title>Requisição inválida!</title>', '');
+      jsonString2 = jsonString2.replaceAll('<link rev="made" />', '');
+      jsonString2 = jsonString2.replaceAll('<style>', '');
+      var pattern1 = RegExp(r'a:link\s*{[^}]*}');
+      jsonString2 = jsonString2.replaceAll(pattern1, '');
+      var pattern2 = RegExp(r'a:hover\s*{[^}]*}');
+      jsonString2 = jsonString2.replaceAll(pattern2, '');
+      var pattern4 = RegExp(r'a:active\s*{[^}]*}');
+      jsonString2 = jsonString2.replaceAll(pattern4, '');
+      var pattern5 = RegExp(r'a:visited\s*{[^}]*}');
+      jsonString2 = jsonString2.replaceAll(pattern5, '');
+      final jsonResponse = json.decode(jsonString2);
+      if(chartData.isNotEmpty){
+        chartData.clear();
       }
-      if(listaAnosSerieAnual.length>0){
-        anoFinalSelecionado = listaAnosSerieAnual.length-1;
-      } else {
-        anoFinalSelecionado = listaAnosSerieAnual.length;
-      }
-    });
-    ultimaDataIPCA = chartData.last.data;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('dataFinal', endval1.toString());
+      setState(() {
+        for (Map<String, dynamic> i in jsonResponse){
+          if(i['valor']!=""&&i['valor']!=null){
+            chartData.add(serie_app.fromJson(i));
+          }
+        }
+        chartData.sort((a, b){ //sorting in descending order
+          return a.data.compareTo(b.data);
+        });
+        endval1 = chartData.last.data;
+        startval1 = chartData[chartData.length-13].data;
+        dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
+        dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
+        listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
+        if(listaAnosSerieAnual.length>13){
+          anoInicialSelecionado = listaAnosSerieAnual.length-13;
+        } else {
+          anoInicialSelecionado = listaAnosSerieAnual.length;
+        }
+        if(listaAnosSerieAnual.length>0){
+          anoFinalSelecionado = listaAnosSerieAnual.length-1;
+        } else {
+          anoFinalSelecionado = listaAnosSerieAnual.length;
+        }
+      });
+      ultimaDataIPCA = chartData.last.data;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('dataFinal', endval1.toString());
+    }
   }
 
   Future loadDataFocus() async {
-    String jsonString = await getJsonFromRestAPI(urlSerie);
-    var jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
-    jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
-    jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
-    jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
-    jsonString2 = jsonString2.replaceAll('<head>', '');
-    jsonString2 = jsonString2.replaceAll('<title>Requisição inválida!</title>', '');
-    jsonString2 = jsonString2.replaceAll('<link rev="made" />', '');
-    jsonString2 = jsonString2.replaceAll('<style>', '');
-    jsonString2 = jsonString2.replaceAll('a:visited {color:#AF8C3A; text-decoration: none;}', '');
-    final jsonResponse = json.decode(jsonString2);
-    if(chartData.isNotEmpty){
-      chartData.clear();
-    }
-    List<serie_app_focus> chartDataFocus = [];
-    for (Map<String, dynamic> i in jsonResponse['value']){
-      if(i['Mediana']!=""&&i['Mediana']!=null){
-        if(periodicidade=="trimestral") {
-          var w = i['DataReferencia'].toString().substring(0,1);
-          if(w=="1"){
-            w = "03";
-          } else if(w=="2"){
-            w = "06";
-          } else if(w=="3"){
-            w = "09";
-          } else {
-            w = "12";
-          }
-          var x = w + "/" + i['DataReferencia'].toString().substring(2, 6);
-          chartDataFocus.add(serie_app_focus(DateFormat('MM/yyyy').parse(x), i['Mediana']));
-        } else {
-          chartDataFocus.add(serie_app_focus.fromJson(i));
-        }
-      }
-    }
-    setState(() {
-      for (int i = 0; i < chartDataFocus.length; i++){
-        if(chartDataFocus[i].Mediana!=""){
-          chartData.add(serie_app(chartDataFocus[i].DataReferencia, chartDataFocus[i].Mediana));
-        }
-      }
-      chartData.sort((a, b){ //sorting in descending order
-        return a.data.compareTo(b.data);
+    http.Response response;
+    String jsonString;
+    var contador = 0;
+    do {
+      response = await getJsonFromRestAPI(urlSerie);
+      jsonString = response.body;
+      contador = contador + 1;
+    } while(response.statusCode!=200 && contador<=10);
+    if(response.statusCode!=200){
+      setState(() {
+        notFound = true;
+        notFoundText = "Dados não disponíveis no momento. A fonte dos dados desta série pode estar temporariamente indisponível. Tente mais tarde!";
       });
-      endval1 = chartData[chartData.length-1].data;
-      startval1 = chartData[0].data;
-      dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
-      dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
-      listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
-      anoInicialSelecionado = 0;
-      anoFinalSelecionado = listaAnosSerieAnual.length-1;
-    });
-    ultimaDataIPCA = chartData.last.data;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('dataFinal', endval1.toString());
+    } else {
+      setState(() {
+        notFound = false;
+      });
+      var jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
+      jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
+      jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
+      jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
+      jsonString2 = jsonString2.replaceAll('<head>', '');
+      jsonString2 = jsonString2.replaceAll('<title>Requisição inválida!</title>', '');
+      jsonString2 = jsonString2.replaceAll('<link rev="made" />', '');
+      jsonString2 = jsonString2.replaceAll('<style>', '');
+      jsonString2 = jsonString2.replaceAll('a:visited {color:#AF8C3A; text-decoration: none;}', '');
+      final jsonResponse = json.decode(jsonString2);
+      if(chartData.isNotEmpty){
+        chartData.clear();
+      }
+      List<serie_app_focus> chartDataFocus = [];
+      for (Map<String, dynamic> i in jsonResponse['value']){
+        if(i['Mediana']!=""&&i['Mediana']!=null){
+          if(periodicidade=="trimestral") {
+            var w = i['DataReferencia'].toString().substring(0,1);
+            if(w=="1"){
+              w = "03";
+            } else if(w=="2"){
+              w = "06";
+            } else if(w=="3"){
+              w = "09";
+            } else {
+              w = "12";
+            }
+            var x = w + "/" + i['DataReferencia'].toString().substring(2, 6);
+            chartDataFocus.add(serie_app_focus(DateFormat('MM/yyyy').parse(x), i['Mediana']));
+          } else {
+            chartDataFocus.add(serie_app_focus.fromJson(i));
+          }
+        }
+      }
+      setState(() {
+        for (int i = 0; i < chartDataFocus.length; i++){
+          if(chartDataFocus[i].Mediana!=""){
+            chartData.add(serie_app(chartDataFocus[i].DataReferencia, chartDataFocus[i].Mediana));
+          }
+        }
+        chartData.sort((a, b){ //sorting in descending order
+          return a.data.compareTo(b.data);
+        });
+        endval1 = chartData[chartData.length-1].data;
+        startval1 = chartData[0].data;
+        dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
+        dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
+        listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
+        anoInicialSelecionado = 0;
+        anoFinalSelecionado = listaAnosSerieAnual.length-1;
+      });
+      ultimaDataIPCA = chartData.last.data;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('dataFinal', endval1.toString());
+    }
   }
-
   NumberFormat formatter1 = new NumberFormat("00");
   NumberFormat formatter2 = new NumberFormat("0000");
 
   Future loadDataIBGE() async {
-    String jsonString = await getJsonFromRestAPI(urlSerie);
-    var pattern1 = RegExp(r'/* #4D749F */\s*{[^}]*}');
-    var jsonString2 = jsonString.replaceAll(pattern1, '');
-    final jsonResponse = json.decode(jsonString2);
-    final item = jsonResponse[0]['resultados'][0]['series'][0]['serie'];
-    if(chartData.isNotEmpty){
-      chartData.clear();
-    }
-    setState(() {
-      for (var i = 0; i<item.keys.toList().length; i++){
-        var x = item.keys.toList()[i];
-        var w = formatter1.format(int.parse(x.substring(4)));
-        if(periodicidade=="trimestral") {
-          if(w=="01"){
-            w = "03";
-          } else if(w=="02"){
-            w = "06";
-          } else if(w=="03"){
-            w = "09";
-          } else {
-            w = "12";
-          }
-        }
-        if(periodicidade=="semestral") {
-          if(w=="01"){
-            w = "06";
-          } else {
-            w = "12";
-          }
-        }
-        //x = formatter1.format(int.parse(x.substring(4))) + "/" + formatter2.format(int.parse(x.substring(0, 4)));
-        x = w + "/" + formatter2.format(int.parse(x.substring(0, 4)));
-        var y = item.values.toList()[i].toString();
-        if(y!="..."&&y!="-"&&y!="X"){
-          chartData.add(
-              serie_app(
-                  DateFormat('MM/yyyy').parse(x),
-                  double.parse(y)
-              )
-          );
-        }
-      }
-      chartData.sort((a, b){ //sorting in descending order
-        return a.data.compareTo(b.data);
+    http.Response response;
+    String jsonString;
+    var contador = 0;
+    do {
+      response = await getJsonFromRestAPI(urlSerie);
+      jsonString = response.body;
+      contador = contador + 1;
+    } while(response.statusCode!=200 && contador<=10);
+    if(response.statusCode!=200){
+      setState(() {
+        notFound = true;
+        notFoundText = "Dados não disponíveis no momento. A fonte dos dados desta série pode estar temporariamente indisponível. Tente mais tarde!";
       });
-      dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
-      dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
-      ultimaDataIPCA = chartData.last.data;
-      listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
-      if(listaAnosSerieAnual.length>13){
-        anoInicialSelecionado = listaAnosSerieAnual.length-13;
-      } else {
-        anoInicialSelecionado = listaAnosSerieAnual.length;
-      }
-      if(listaAnosSerieAnual.length>0){
-        anoFinalSelecionado = listaAnosSerieAnual.length-1;
-      } else {
-        anoFinalSelecionado = listaAnosSerieAnual.length;
-      }
-    });
-    endval1 = chartData.last.data;
-    if(chartData.length>13){
-      startval1 = chartData[chartData.length-13].data;
     } else {
-      startval1 = chartData.first.data;
+      setState(() {
+        notFound = false;
+      });
+      var pattern1 = RegExp(r'/* #4D749F */\s*{[^}]*}');
+      var jsonString2 = jsonString.replaceAll(pattern1, '');
+      jsonString2 = jsonString2.replaceAll('/* #4D749F */', '');
+      final jsonResponse = json.decode(jsonString2);
+      final item = jsonResponse[0]['resultados'][0]['series'][0]['serie'];
+      if(chartData.isNotEmpty){
+        chartData.clear();
+      }
+      setState(() {
+        for (var i = 0; i<item.keys.toList().length; i++){
+          var x = item.keys.toList()[i];
+          var w = formatter1.format(int.parse(x.substring(4)));
+          if(periodicidade=="trimestral") {
+            if(w=="01"){
+              w = "03";
+            } else if(w=="02"){
+              w = "06";
+            } else if(w=="03"){
+              w = "09";
+            } else {
+              w = "12";
+            }
+          }
+          if(periodicidade=="semestral") {
+            if(w=="01"){
+              w = "06";
+            } else {
+              w = "12";
+            }
+          }
+          //x = formatter1.format(int.parse(x.substring(4))) + "/" + formatter2.format(int.parse(x.substring(0, 4)));
+          x = w + "/" + formatter2.format(int.parse(x.substring(0, 4)));
+          var y = item.values.toList()[i].toString();
+          if(y!="..."&&y!="-"&&y!="X"){
+            chartData.add(
+                serie_app(
+                    DateFormat('MM/yyyy').parse(x),
+                    double.parse(y)
+                )
+            );
+          }
+        }
+        chartData.sort((a, b){ //sorting in descending order
+          return a.data.compareTo(b.data);
+        });
+        if(chartData.isEmpty){
+          setState(() {
+            notFound = true;
+            notFoundText = "Esta série não possui valores! Altere os filtros da pesquisa.";
+          });
+        } else {
+          setState(() {
+            notFound = false;
+          });
+          dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
+          dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
+          ultimaDataIPCA = chartData.last.data;
+          listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
+          if(listaAnosSerieAnual.length>13){
+            anoInicialSelecionado = listaAnosSerieAnual.length-13;
+          } else {
+            anoInicialSelecionado = listaAnosSerieAnual.length;
+          }
+          if(listaAnosSerieAnual.length>0){
+            anoFinalSelecionado = listaAnosSerieAnual.length-1;
+          } else {
+            anoFinalSelecionado = listaAnosSerieAnual.length;
+          }
+          endval1 = chartData.last.data;
+          if(chartData.length>13){
+            startval1 = chartData[chartData.length-13].data;
+          } else {
+            startval1 = chartData.first.data;
+          }
+        }
+      });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('dataFinal', endval1.toString());
     }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('dataFinal', endval1.toString());
   }
 
   List<serie_app> itemsBetweenDates({
@@ -360,7 +425,7 @@ class _TelaDados extends State<TelaDados> {
     return output;
   }
 
-  Future toggleDatabase() async {
+ /* Future toggleDatabase() async {
     valorToggle = await DatabaseHelper.getAllToggle();
     initialIndex = valorToggle?.firstWhereOrNull((element) => element.id==cod_serie);
     if(initialIndex==null){
@@ -369,7 +434,7 @@ class _TelaDados extends State<TelaDados> {
     } else {
       initialIndex = initialIndex.valorToggle;
     }
-  }
+  }*/
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -420,19 +485,6 @@ class _TelaDados extends State<TelaDados> {
 
           listaMeusDados.setListaEscolhida(data);
           listaEscolhida = listaMeusDados.getListaEscolhida;
-
-/*          bool isNumeroUnique(List<DadosSeries> array) {
-            Set<String> uniqueNumeros = {};
-            for (var obj in array) {
-              if (uniqueNumeros.contains(obj.numero)) {
-                return false; // Duplicate found
-              } else {
-                uniqueNumeros.add(obj.numero);
-              }
-            }
-            return true; // All values are unique
-          }
-          print("É único ${isNumeroUnique(listaEscolhida)}"); */// Output: true
 
           listaMostrar = listaEscolhida.map((element) => element.nome.toString()).toList().toSet().toList();
           listaMostrar.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
@@ -488,14 +540,6 @@ class _TelaDados extends State<TelaDados> {
               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
               element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
 
-          initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
-
-          if(initialIndex==null){
-            initialIndex = 0;
-            preencherDados(cod_serie);
-          } else {
-            initialIndex = initialIndex.valorToggle;
-          }
           nomeSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
               element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).nome;
@@ -556,11 +600,6 @@ class _TelaDados extends State<TelaDados> {
         ),
       ),
     );
-  }
-
-  void preencherDados(String numero_serie) async {
-      var fido = Toggle_reg(id: numero_serie, valorToggle: 0, dataCompara: '');
-      await DatabaseHelper.insertToggle(fido);
   }
 
   Widget metodoSelecaoInicial(String periodicidadeSerie){
@@ -764,7 +803,7 @@ class _TelaDados extends State<TelaDados> {
   @override
   Widget build(BuildContext context) {
 
-    _interstitialAd?.show();
+    //_interstitialAd?.show();
 
     Future<void> startService() async {
       await FlutterBackgroundService().startService();
@@ -855,8 +894,6 @@ class _TelaDados extends State<TelaDados> {
       valorItemHeightMetrica = 50.0;
     }
 
-    print("cod_serie: ${cod_serie}");
-
     return Scaffold(
         appBar: AppBar(
           title: Text("Visualize os dados", style: TextStyle(color: Colors.white) ),
@@ -945,7 +982,6 @@ class _TelaDados extends State<TelaDados> {
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                               element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
 
-
                                                           // Separar o indice geral em um objeto a parte
                                                           String? specialAssunto;
                                                           List<String> otherAssuntos = [];
@@ -966,8 +1002,6 @@ class _TelaDados extends State<TelaDados> {
                                                           }
                                                           listaMostrarCategoria.addAll(otherAssuntos);
 
-
-                                                          //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                           dropdownValueCategoria = listaMostrarCategoria.first;
 
                                                           urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
@@ -980,14 +1014,6 @@ class _TelaDados extends State<TelaDados> {
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                               element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
 
-                                                          initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
-
-                                                          if(initialIndex==null){
-                                                            initialIndex = 0;
-                                                            preencherDados(cod_serie);
-                                                          } else {
-                                                            initialIndex = initialIndex.valorToggle;
-                                                          }
                                                           nomeSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                               element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).nome;
@@ -1081,7 +1107,6 @@ class _TelaDados extends State<TelaDados> {
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
 
-
                                                             // Separar o indice geral em um objeto a parte
                                                             String? specialAssunto;
                                                             List<String> otherAssuntos = [];
@@ -1101,8 +1126,6 @@ class _TelaDados extends State<TelaDados> {
                                                             }
                                                             listaMostrarCategoria.addAll(otherAssuntos);
 
-
-                                                            //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueCategoria = listaMostrarCategoria.first;
 
                                                             urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
@@ -1115,13 +1138,6 @@ class _TelaDados extends State<TelaDados> {
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
 
-                                                            initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
-                                                            if(initialIndex==null){
-                                                              initialIndex = 0;
-                                                              preencherDados(cod_serie);
-                                                            } else {
-                                                              initialIndex = initialIndex.valorToggle;
-                                                            }
                                                             formatoSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).formato;
@@ -1204,7 +1220,6 @@ class _TelaDados extends State<TelaDados> {
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade).map((e) => e.categoria.toString()).toSet().toList();
 
-
                                                             // Separar o indice geral em um objeto a parte
                                                             String? specialAssunto;
                                                             List<String> otherAssuntos = [];
@@ -1224,8 +1239,6 @@ class _TelaDados extends State<TelaDados> {
                                                             }
                                                             listaMostrarCategoria.addAll(otherAssuntos);
 
-
-                                                            //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueCategoria = listaMostrarCategoria.first;
 
                                                             urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
@@ -1238,13 +1251,6 @@ class _TelaDados extends State<TelaDados> {
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
 
-                                                            initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
-                                                            if(initialIndex==null){
-                                                              initialIndex = 0;
-                                                              preencherDados(cod_serie);
-                                                            } else {
-                                                              initialIndex = initialIndex.valorToggle;
-                                                            }
                                                             formatoSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).formato;
@@ -1341,9 +1347,6 @@ class _TelaDados extends State<TelaDados> {
                                                             }
                                                             listaMostrarCategoria.addAll(otherAssuntos);
 
-
-
-                                                            //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
                                                             dropdownValueCategoria = listaMostrarCategoria.first;
                                                             urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
@@ -1355,13 +1358,6 @@ class _TelaDados extends State<TelaDados> {
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
 
-                                                            initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
-                                                            if(initialIndex==null){
-                                                              initialIndex = 0;
-                                                              preencherDados(cod_serie);
-                                                            } else {
-                                                              initialIndex = initialIndex.valorToggle;
-                                                            }
                                                             formatoSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                 element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                 element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).formato;
@@ -1448,14 +1444,6 @@ class _TelaDados extends State<TelaDados> {
                                                                 cod_serie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                     element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                     element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).numero;
-                                                                //initialIndex = valorToggle?.firstWhere((element) => element.id==cod_serie).valorToggle;
-                                                                initialIndex = valorToggle!.firstWhereOrNull((element) => element.id==cod_serie);
-                                                                if(initialIndex==null){
-                                                                  initialIndex = 0;
-                                                                  preencherDados(cod_serie);
-                                                                } else {
-                                                                  initialIndex = initialIndex.valorToggle;
-                                                                }
 
                                                                 formatoSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                     element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
@@ -1496,103 +1484,27 @@ class _TelaDados extends State<TelaDados> {
                                                         )
                                                     )
                                                 ),
-                                                Container(
-                                                  width: double.infinity,
-                                                  padding: const EdgeInsets.only(left: 32, right: 32, top: 15),
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                                    children: [
-                                                      Text(
-                                                        "Deseja receber notificação quando esta série receber novos valores?",
-                                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                                        textAlign: TextAlign.center,
-                                                      ),
-                                                    ],
-                                                  ),
+
+                                                Padding(padding: EdgeInsets.all(10)),
+                                                Text(
+                                                  "Selecione o intervalo:",
+                                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                                 ),
-                                                Padding(padding: EdgeInsets.only(top: 10)),
-                                                FutureBuilder(
-                                                    future: toggleDatabase(),
-                                                    builder: (ctx, snapshot) {
-                                                      if(initialIndex!=null){
-                                                        return Column(
-                                                          children: [
-                                                        ToggleSwitch(
-                                                        borderColor: <Color>[Colors.grey],
-                                                          borderWidth: 1,
-                                                          activeBgColor: <Color>[Colors.green.shade500],
-                                                          inactiveBgColor: Colors.white,
-                                                          initialLabelIndex: initialIndex,
-                                                          totalSwitches: 2,
-                                                          labels: [
-                                                            'Não',
-                                                            'Sim',
-                                                          ],
-                                                          onToggle: (index) async {
-                                                            // Request notification permission if not granted
-                                                            if (isNotificationGranted == false) {
-                                                              await Permission.notification.isDenied.then(
-                                                                    (value) {
-                                                                  if (value) {
-                                                                    Permission.notification.request();
-                                                                  }
-                                                                },
-                                                              );
-                                                            }
-
-                                                            // Update state in the database
-                                                            urlSerie = listaEscolhida.firstWhere((element) => element.numero == cod_serie).urlAPI;
-                                                            fonte = listaEscolhida.firstWhere((element) => element.numero == cod_serie).fonte;
-                                                            var novoToggle = Toggle_reg(id: cod_serie, valorToggle: index, dataCompara: ultimaDataIPCA.toString());
-
-                                                            void atualizarToggle() async {
-                                                              await DatabaseHelper.updateToggle(novoToggle);
-                                                            }
-
-                                                            setState(() {
-                                                              initialIndex = index!;
-                                                              atualizarToggle();
-                                                            });
-
-                                                            // Manage service based on toggle state
-                                                            if (index == 1) {  // "Sim" selected
-                                                              bool running = await isServiceRunning();
-                                                              if (running) {
-                                                                await restartService();
-                                                              } else {
-                                                                await startService();
-                                                              }
-                                                            } else {  // "Não" selected
-                                                              await stopService();
-                                                            }
-                                                            bool running = await isServiceRunning();
-                                                            print("running: $running");
-                                                          },
-                                                        ),
-
-                                                            Padding(padding: EdgeInsets.all(10)),
-                                                            Text(
-                                                              "Selecione o intervalo:",
-                                                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                                                            ),
-                                                            metodoSelecaoInicial(periodicidade),
-                                                          ],
-                                                        );
-                                                      } else {
-                                                        return const CircularProgressIndicator();
-                                                      }
-                                                    }
-                                                ),
+                                                  notFound ? Padding(
+                                                  padding: const EdgeInsets.only(top: 10.0),
+                                                  child: Text(notFoundText,
+                                                    style: TextStyle(fontSize: 18, color: Colors.red), textAlign: TextAlign.justify,),
+                                                ) : metodoSelecaoInicial(periodicidade),
 
                                                 //metodoSelecaoFinal(periodicidade),
-                                                Padding(
+                                                notFound ? Container() : Padding(
                                                   padding: EdgeInsets.only(top: 20, bottom: 10),
                                                   child: Text(
                                                     "Gráfico: $nomeSerie - $dropdownValueLocalidade - $dropdownValueCategoria - $formatoSerie",
                                                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                                   ),
                                                 ),
-                                                Column(
+                                                notFound ? Container() : Column(
                                                   children: <Widget>[
                                                     Center(child:
 
@@ -1717,14 +1629,14 @@ class _TelaDados extends State<TelaDados> {
                                                     ),
                                                   ],
                                                 ),
-                                                Padding(
+                                                notFound ? Container() : Padding(
                                                   padding: EdgeInsets.only(bottom: 15),
                                                   child: Text(
                                                     "Fonte: $fonte",
                                                     style: TextStyle(fontSize: 10),
                                                   ),
                                                 ),
-                                                OutlinedButton(
+                                                notFound ? Container() : OutlinedButton(
                                                     onPressed: (){
                                                       Navigator.push(
                                                           context,

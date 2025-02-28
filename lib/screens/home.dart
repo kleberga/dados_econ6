@@ -16,12 +16,11 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<Widget> buttons = [];
   bool _isLoading = false;
+  List<Widget> buttons = [];
 
-  void fetchData() async {
+    void fetchData() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    // QuerySnapshot snapshot = await firestore.collection('assunto').orderBy('normalized_nome').get();
     // carregar o arquivo GZIP
     ByteData data = await rootBundle.rootBundle.load('lib/database/assunto.json.gz');
     // Decodificar o arquivo Gzip
@@ -63,17 +62,11 @@ class _HomeState extends State<Home> {
                     setState(() {
                       _isLoading = true;
                     });
-/*                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => TelaDados(assuntoSerie: doc.normalized_nome,)
-                        )
-                    );*/
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => TelaDados(assuntoSerie: doc.normalized_nome,)
-                        ),
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => TelaDados(assuntoSerie: doc.normalized_nome,)
+                      ),
                     ).then((_) {
                       setState(() {
                         _isLoading = false;
@@ -104,10 +97,15 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    super.initState();
     fetchData();
   }
 
   var corFundo = Color.fromARGB(255, 63, 81, 181);
+    final List<Widget> _circular = [
+      Padding(padding: EdgeInsets.only(top: 20)),
+      Center(child: Text("Carregando...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), ),)
+    ];
 
   @override
   Widget build(BuildContext context) {
@@ -133,12 +131,8 @@ class _HomeState extends State<Home> {
       Stack(
         children: [
           Column(
-            children: buttons,
+            children: _isLoading ? _circular : buttons,
           ),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withAlpha(128),
-            ),
         ],
       ),
       drawer: Drawer(

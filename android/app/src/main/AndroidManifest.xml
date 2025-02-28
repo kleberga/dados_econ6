@@ -53,7 +53,7 @@
 
     <application
         android:enableOnBackInvokedCallback="true"
-        android:label="Dados Econômicos"
+        android:label="DadosEco"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
 

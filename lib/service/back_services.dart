@@ -18,9 +18,16 @@ class NotificationService {
 
   Future<void> initNotification() async {
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('icone_economico');
+    final DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+
     final InitializationSettings initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
-      iOS: DarwinInitializationSettings(),
+      iOS: initializationSettingsIOS,
     );
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
@@ -226,7 +233,6 @@ void onStart1(ServiceInstance service) async {
       'channelName',
       importance: Importance.max,
       priority: Priority.high,
-      icon: 'icone_economico',
     ),
     iOS: DarwinNotificationDetails(),
   );
@@ -266,7 +272,7 @@ void onStart1(ServiceInstance service) async {
   }
   await recuperaData();
 
-  Timer.periodic(const Duration(seconds: 1), (timer) async {
+  Timer.periodic(const Duration(seconds: 10), (timer) async {
     var ultimaData;
 
     nomeSerieArmaz = await getStringFromLocalStorage("nomeSerieArmaz");
