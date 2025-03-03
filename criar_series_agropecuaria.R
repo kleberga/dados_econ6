@@ -492,7 +492,7 @@ for(i in 1:nrow(variaveis)){
         lista_dados[['numero']] <- codigo
         lista_dados[['nome']] <- "Pesquisa Trimestral do Couro"
         lista_dados[['nomeCompleto']] <- "Pesquisa Trimestral do Couro"
-        lista_dados[['descricao']] <-"Tem por objetivo fornecer indicadores da variação da produção física de ovos de galinha, de forma a incorporar, no cálculo do Produto Interno Bruto, o valor dessa produção. A produção de ovos desta pesquisa é utilizada como componente da estimativa da produção total de ovos municipal da Pesquisa da Pecuária Municipal (PPM), que inclui ainda a produção não comercial e aquela abaixo dos limites de corte definidos para esta pesquisa."
+        lista_dados[['descricao']] <-"Tem por objetivo obter informações estatísticas sobre a quantidade de couro cru de bovino adquirido e curtido. As informações produzidas fornecem aos órgãos do governo e entidades do setor privado subsídios para o acompanhamento e análise da evolução do setor coureiro. Permite ainda avaliar o abate bovino não captado pela Pesquisa Trimestral do Abate."
         lista_dados[['formato']] <- variaveis[i,"unidade"]
         lista_dados[['fonte']] <- "IBGE"
         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1089/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]")
@@ -626,7 +626,7 @@ for(i in 1:nrow(variaveis)){
         lista_dados[['metrica']] <-variaveis[i,"nome"]
         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
         lista_dados[['localidades']] <- localidades[j,"nome_loc"]
-        lista_dados[['categoria']] <- paste0("Ref. temporal: ", categorias1[w,"nome"], " - Tipode inspeção: ", categorias2[k,"nome"])
+        lista_dados[['categoria']] <- paste0("Ref. temporal: ", categorias1[w,"nome"], " - Tipo de inspeção: ", categorias2[k,"nome"])
         teste <- do.call("cbind",lista_dados)
         teste2 <- as.data.frame(teste)
         base_est_1086 <- bind_rows(base_est_1086, teste2)

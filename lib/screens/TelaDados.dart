@@ -70,6 +70,7 @@ var anoFinalSelecionado;
 var dtInicial;
 var notFound = false;
 var notFoundText;
+var api1Future;
 
 DateTime startval1 = DateFormat(formatoData).parse('01/2021');
 DateTime endval1 = DateFormat(formatoData).parse('12/2021');
@@ -78,7 +79,7 @@ List<DadosSeries> listaEscolhida = [];
 
 class TelaDados extends StatefulWidget {
   final String assuntoSerie;
-  const TelaDados({required this.assuntoSerie});
+  const TelaDados({required this.assuntoSerie,});
   @override
   State<TelaDados> createState() => _TelaDados();
 }
@@ -91,10 +92,13 @@ Future<String> getStringFromLocalStorage(String key) async {
 class _TelaDados extends State<TelaDados> {
 
   InterstitialAd? _interstitialAd;
+  bool isAdLoaded = false;
+  bool hasAdBeenShown = false;
   final adUnitId = Platform.isAndroid
      // ? 'ca-app-pub-5086029981237773~6023541382'
       ? 'ca-app-pub-3940256099942544/1033173712'
-      : 'ca-app-pub-5086029981237773~1901760712';
+    //  : 'ca-app-pub-5086029981237773~1901760712';
+        : 'ca-app-pub-3940256099942544~1458002511';
 
   void loadAd() {
     InterstitialAd.load(
@@ -117,12 +121,21 @@ class _TelaDados extends State<TelaDados> {
                 onAdDismissedFullScreenContent: (ad) {
                   // Dispose the ad here to free resources.
                   ad.dispose();
+
+                  setState(() {
+                    _interstitialAd = null;
+                    isAdLoaded = false;
+                  });
                 },
                 // Called when a click is recorded for an ad.
                 onAdClicked: (ad) {});
             debugPrint('$ad loaded.');
             // Keep a reference to the ad so you can show it later.
             _interstitialAd = ad;
+            isAdLoaded = true;
+            if(!hasAdBeenShown) {
+              _showInterstitialAd();
+            }
           },
           // Called when an ad request failed.
           onAdFailedToLoad: (LoadAdError error) {
@@ -131,7 +144,22 @@ class _TelaDados extends State<TelaDados> {
         )
     );
   }
-
+  void _showInterstitialAd() {
+    if (isAdLoaded && _interstitialAd != null) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          _interstitialAd = null; // Clean up the ad after it's shown
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          _interstitialAd = null; // Clean up the ad in case of an error
+        },
+      );
+      _interstitialAd!.show();
+      hasAdBeenShown = true; // Mark the flag to prevent showing again
+    }
+  }
 
   Future<http.Response> getJsonFromRestAPI(String url_serie) async {
     final prefs = await SharedPreferences.getInstance();
@@ -431,7 +459,6 @@ class _TelaDados extends State<TelaDados> {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   Future<List<DadosSeries>> fetchData(String codAssunto) async {
-
     var arquivo = 'lib/database/'+codAssunto+'.json.gz';
     // carregar o arquivo GZIP
     ByteData data = await rootBundle.rootBundle.load(arquivo);
@@ -448,7 +475,7 @@ class _TelaDados extends State<TelaDados> {
     return transformedData;
   }
 
-  late Future<List<DadosSeries>> api1Future;
+  //late Future<List<DadosSeries>> api1Future;
 
   @override
   void initState() {
@@ -456,11 +483,9 @@ class _TelaDados extends State<TelaDados> {
     super.initState();
     loadAd();
     codAssunto = widget.assuntoSerie;
-
     api1Future = fetchData(codAssunto);
     api1Future.then((data) {
         setState(() {
-
           var listaMeusDados = providerContainer.read(listaMeusDadosProvider);
 
           listaMeusDados.setListaEscolhida(data);
@@ -781,9 +806,16 @@ class _TelaDados extends State<TelaDados> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void dispose() {
+    // TODO: Dispose an InterstitialAd object
+    _interstitialAd?.dispose();
+    super.dispose();
+  }
 
-    _interstitialAd?.show();
+  @override
+  Widget build(BuildContext context) {
+    // isAdLoaded ? _interstitialAd?.show() : CircularProgressIndicator();
+    //isAdLoaded ? showAd() : CircularProgressIndicator();
 
     Future<void> startService() async {
       await FlutterBackgroundService().startService();
@@ -833,7 +865,7 @@ class _TelaDados extends State<TelaDados> {
         _textSize(dropdownValueCategoria, TextStyle(fontWeight: FontWeight.normal, fontSize: 15)).width<=750){
       alturaCategoria = 80.0;
     } else {
-      alturaCategoria = 100.0;
+      alturaCategoria = 110.0;
     }
 
     if(_textSize(dropdownValueCategoria, TextStyle(fontWeight: FontWeight.normal, fontSize: 15)).width>300) {

@@ -19,7 +19,7 @@ class _HomeState extends State<Home> {
   bool _isLoading = false;
   List<Widget> buttons = [];
 
-    void fetchData() async {
+  void fetchData() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     // carregar o arquivo GZIP
     ByteData data = await rootBundle.rootBundle.load('lib/database/assunto.json.gz');
@@ -37,46 +37,51 @@ class _HomeState extends State<Home> {
 
     List<Widget> fetchedButtons = transformedData.map((doc) {
       return Padding(
-          padding: EdgeInsets.only(top: 20, bottom: 10),
-          child: Center(
-            child:
-            Container(
-              height: 40,
-              width: 250,
-              decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(30), //border raiuds of dropdown button
-                  boxShadow: <BoxShadow>[ //apply shadow on Dropdown button
-                    BoxShadow(
-                        color: Color.fromRGBO(0, 0, 0, 0.57), //shadow for button
-                        blurRadius: 5) //blur radius of shadow
-                  ]
-              ),
-              child: ElevatedButton(
-                  style: ButtonStyle(
-                    fixedSize: WidgetStateProperty.all(Size(200, 40)),
-                    backgroundColor: WidgetStateProperty.all(corFundo,
+        padding: EdgeInsets.only(top: 20, bottom: 10),
+        child: Center(
+          child:
+          Container(
+            height: 40,
+            width: 250,
+            decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(30), //border raiuds of dropdown button
+                boxShadow: <BoxShadow>[ //apply shadow on Dropdown button
+                  BoxShadow(
+                      color: Color.fromRGBO(0, 0, 0, 0.57), //shadow for button
+                      blurRadius: 5) //blur radius of shadow
+                ]
+            ),
+            child: ElevatedButton(
+                style: ButtonStyle(
+                  fixedSize: WidgetStateProperty.all(Size(200, 40)),
+                  backgroundColor: WidgetStateProperty.all(corFundo,),
+                  overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(WidgetState.pressed)) {
+                      return Colors.blue[500]; // Background color when clicked
+                    }
+                    return null; // Keep default overlay for other states
+                  }),
+                ),
+                onPressed: () async {
+                  setState(() {
+                    _isLoading = true;
+                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => TelaDados(assuntoSerie: doc.normalized_nome,)
                     ),
-                  ),
-                  onPressed: (){
+                  ).then((_) {
                     setState(() {
-                      _isLoading = true;
+                      _isLoading = false;
                     });
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => TelaDados(assuntoSerie: doc.normalized_nome,)
-                      ),
-                    ).then((_) {
-                      setState(() {
-                        _isLoading = false;
-                      });
-                    });
-                  },
-                  child: Text(doc.nome, style: TextStyle(fontSize: 16, color: Colors.white),)
-              ),
+                  });
+                },
+                child: Text(doc.nome, style: TextStyle(fontSize: 16, color: Colors.white),)
             ),
           ),
+        ),
       );
     }).toList();
     setState(() {
@@ -106,6 +111,7 @@ class _HomeState extends State<Home> {
       Padding(padding: EdgeInsets.only(top: 20)),
       Center(child: Text("Carregando...", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold), ),)
     ];
+
 
   @override
   Widget build(BuildContext context) {

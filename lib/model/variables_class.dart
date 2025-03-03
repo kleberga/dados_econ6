@@ -8,11 +8,7 @@ class serie_app {
   factory serie_app.fromJson(Map<String, dynamic> parsedJson){
     var w;
     var data2;
-    if(cod_serie=='1aab8edb-fe80-4c88-8687-36aa66ed10f5'||cod_serie=='244bc402-d20d-4541-9b7a-e7aee931e2e1'){
-      w = double.parse(parsedJson['valor'])/1000000;
-    } else {
-      w = double.parse(parsedJson['valor']);
-    }
+    w = double.parse(parsedJson['valor']);
     if(formatoData=='dd/MM/yyyy'){
       data2 = DateFormat('dd/MM/yyyy').parse(parsedJson['data']);
     } else {
