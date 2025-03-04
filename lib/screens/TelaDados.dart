@@ -192,7 +192,10 @@ class _TelaDados extends State<TelaDados> {
   TextEditingController dateInputIni = TextEditingController();
 
   Future loadDataSGS() async {
-    listaAnosSerieAnual.clear();
+    setState(() {
+      listaAnosSerieAnual.clear();
+      notFound = false;
+    });
     http.Response response;
     String jsonString;
     var contador = 0;
@@ -264,7 +267,10 @@ class _TelaDados extends State<TelaDados> {
   }
 
   Future loadDataFocus() async {
-    listaAnosSerieAnual.clear();
+    setState(() {
+      listaAnosSerieAnual.clear();
+      notFound = false;
+    });
     http.Response response;
     String jsonString;
     var contador = 0;
@@ -342,7 +348,10 @@ class _TelaDados extends State<TelaDados> {
   NumberFormat formatter2 = new NumberFormat("0000");
 
   Future loadDataIBGE() async {
-    listaAnosSerieAnual.clear();
+    setState(() {
+      listaAnosSerieAnual.clear();
+      notFound = false;
+    });
     http.Response response;
     String jsonString;
     var contador = 0;
