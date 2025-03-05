@@ -631,11 +631,37 @@ class _TelaDados extends State<TelaDados> {
               readOnly: true,
               //set it true, so that user will not able to edit text
               onTap: () async {
+                Intl.defaultLocale = 'pt_BR';
                 DateTime? pickedDate = await showMonthPicker(
                     context: context,
                     initialDate: startval1,
                     firstDate: DateFormat(formatoData).parse(dataInicialSerie),
-                    lastDate: DateFormat(formatoData).parse(dataFinalSerie));
+                    lastDate: DateFormat(formatoData).parse(dataFinalSerie),
+                  monthPickerDialogSettings: const MonthPickerDialogSettings(
+                    headerSettings: PickerHeaderSettings(
+                      headerCurrentPageTextStyle: TextStyle(fontSize: 14, color: Colors.white),
+                      headerSelectedIntervalTextStyle: TextStyle(fontSize: 16, color: Colors.white),
+                      headerBackgroundColor: Color.fromARGB(255, 63, 81, 181),
+                    ),
+                    dialogSettings: PickerDialogSettings(
+                      dialogRoundedCornersRadius: 20,
+                    ),
+                  ),
+                  confirmWidget:  Text(
+                    'OK',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 63, 81, 181),
+                    ),
+                  ),
+                  cancelWidget: Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 63, 81, 181),
+                    ),
+                  )
+                );
                 if (pickedDate != null) {
                   String formattedDate =
                   DateFormat(formatoData).format(pickedDate);
@@ -656,11 +682,37 @@ class _TelaDados extends State<TelaDados> {
               readOnly: true,
               //set it true, so that user will not able to edit text
               onTap: () async {
+                Intl.defaultLocale = 'pt_BR';
                 DateTime? pickedDate = await showMonthPicker(
                     context: context,
                     initialDate: endval1,
                     firstDate: DateFormat(formatoData).parse(dataInicialSerie),
-                    lastDate: DateFormat(formatoData).parse(dataFinalSerie));
+                    lastDate: DateFormat(formatoData).parse(dataFinalSerie),
+                    monthPickerDialogSettings: const MonthPickerDialogSettings(
+                      headerSettings: PickerHeaderSettings(
+                        headerCurrentPageTextStyle: TextStyle(fontSize: 14, color: Colors.white),
+                        headerSelectedIntervalTextStyle: TextStyle(fontSize: 16, color: Colors.white),
+                        headerBackgroundColor: Color.fromARGB(255, 63, 81, 181),
+                      ),
+                      dialogSettings: PickerDialogSettings(
+                        dialogRoundedCornersRadius: 20,
+                      ),
+                    ),
+                    confirmWidget:  Text(
+                      'OK',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 63, 81, 181),
+                      ),
+                    ),
+                    cancelWidget: Text(
+                      'Cancelar',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 63, 81, 181),
+                      ),
+                    )
+                );
                 if (pickedDate != null) {
                   String formattedDate =
                   DateFormat(formatoData).format(pickedDate);
@@ -686,11 +738,29 @@ class _TelaDados extends State<TelaDados> {
                 readOnly: true,
                 //set it true, so that user will not able to edit text
                 onTap: () async {
+                  Intl.defaultLocale = 'pt_BR';
+/*                  DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: startval1,
+                      firstDate: DateFormat(formatoData).parse(dataInicialSerie),
+                      lastDate: DateFormat(formatoData).parse(dataFinalSerie));*/
                   DateTime? pickedDate = await showDatePicker(
                       context: context,
                       initialDate: startval1,
                       firstDate: DateFormat(formatoData).parse(dataInicialSerie),
-                      lastDate: DateFormat(formatoData).parse(dataFinalSerie));
+                      lastDate: DateFormat(formatoData).parse(dataFinalSerie),
+                    builder: (BuildContext context, Widget? child) {
+                      return Theme(
+                        data: ThemeData.light().copyWith(
+                          primaryColor: Color.fromARGB(255, 63, 81, 181), // Header background color
+                          colorScheme: ColorScheme.light(primary: Color.fromARGB(255, 63, 81, 181)),
+                          buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary,),
+                        ),
+                        child: child!,
+                      );
+                    },
+
+                  );
                   if (pickedDate != null) {
                     String formattedDate =
                     DateFormat(formatoData).format(pickedDate);
@@ -711,11 +781,23 @@ class _TelaDados extends State<TelaDados> {
                 readOnly: true,
                 //set it true, so that user will not able to edit text
                 onTap: () async {
+                  Intl.defaultLocale = 'pt_BR';
                   DateTime? pickedDate = await showDatePicker(
                       context: context,
                       initialDate: endval1,
                       firstDate: DateFormat(formatoData).parse(dataInicialSerie),
-                      lastDate: DateFormat(formatoData).parse(dataFinalSerie));
+                      lastDate: DateFormat(formatoData).parse(dataFinalSerie),
+                    builder: (BuildContext context, Widget? child) {
+                      return Theme(
+                        data: ThemeData.light().copyWith(
+                          primaryColor: Color.fromARGB(255, 63, 81, 181), // Header background color
+                          colorScheme: ColorScheme.light(primary: Color.fromARGB(255, 63, 81, 181)),
+                          buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
                   if (pickedDate != null) {
                     String formattedDate =
                     DateFormat(formatoData).format(pickedDate);

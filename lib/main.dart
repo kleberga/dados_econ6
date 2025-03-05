@@ -11,6 +11,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'infra/firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 List<cadastroSeries> listaIBGE = [];
 List<Metrica> listaMetrica = [];
@@ -38,10 +39,24 @@ Future<void> main() async {
   DateTime now = DateTime.now();
   String formattedDateTime = DateFormat('yyyy-MM-dd_HH:mm:ss.SSS').format(now);
 
+
   runApp(
       ProviderScope(
-        parent: providerContainer,
-      child: MaterialApp(
+        //parent: providerContainer,
+        overrides: [
+          // Add any provider overrides here, if needed.
+          // For example: myProvider.overrideWithValue(someValue),
+        ],
+        child: MaterialApp(
+          locale: const Locale('pt', 'BR'),
+          supportedLocales: const [
+            Locale('pt', 'BR'), // Portuguese (Brazil)
+        ],
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate, // Add this for Cupertino widgets
+          ],
         home: Home(),
         debugShowCheckedModeBanner: false,
       ),

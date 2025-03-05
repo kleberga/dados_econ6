@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/standalone.dart' as tz;
 
+import 'TelaDados.dart';
+
 class ReportarErro extends StatefulWidget {
   const ReportarErro({super.key, required this.codigoSerie});
   final String codigoSerie;
