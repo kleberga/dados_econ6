@@ -108,9 +108,12 @@ flutter_launcher_icons:
   macos:
     generate: true
   remove_alpha_ios: true
-  image_path: assets/images/icone_economico_alterado4.png
-  adaptive_icon_foreground: assets/images/icone_economico_alterado4.png
-  adaptive_icon_background: assets/images/icone_economico_alterado4.png
+  image_path: assets/images/icon.png
+  adaptive_icon_foreground: assets/images/icon.png
+  adaptive_icon_background: assets/images/icon.png
+#  image_path: assets/images/icone_economico_alterado4.png
+#  adaptive_icon_foreground: assets/images/icone_economico_alterado4.png
+#  adaptive_icon_background: assets/images/icone_economico_alterado4.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -128,11 +131,11 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
-    - images/icone_economico_alterado4.png
+  #  - images/icone_economico_alterado4.png
     - assets/images/dadoseco8.png
     - images/dadoseco8.png
     - images/dadoseco10.png
-    - assets/images/icone_economico_alterado4.png
+  #  - assets/images/icone_economico_alterado4.png
     - .env
     - lib/database/assunto.json.gz
     - lib/database/indice_precos.json.gz
@@ -145,6 +148,8 @@ flutter:
     - lib/database/projecoes.json.gz
     - lib/database/agropecuaria.json.gz
     - images/fundo.png
+    - assets/images/icon.png
+    - assets/icon/icon.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
