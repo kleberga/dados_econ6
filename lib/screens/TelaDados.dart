@@ -95,8 +95,8 @@ class _TelaDados extends State<TelaDados> {
   bool isAdLoaded = false;
   bool hasAdBeenShown = false;
   final adUnitId = Platform.isAndroid
-     // ? 'ca-app-pub-5086029981237773~6023541382'
-      ? 'ca-app-pub-3940256099942544/1033173712'
+      ? 'ca-app-pub-5086029981237773~6023541382'
+     //  ? 'ca-app-pub-3940256099942544/1033173712'
     //  : 'ca-app-pub-5086029981237773~1901760712';
         : 'ca-app-pub-3940256099942544~1458002511';
 
