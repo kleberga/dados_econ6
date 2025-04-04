@@ -18,7 +18,7 @@ nivel_territorial <- inpc$nivelTerritorial$Administrativo
 variaveis <- inpc$variaveis
 # remover o termo INPC das variaveis
 variaveis$nome <- gsub("INPC - ","", variaveis$nome)
-variaveis <- variaveis[variaveis$id!=45,]
+# variaveis <- variaveis[variaveis$id!=45,]
 # filtrar as categorias
 categorias <- inpc$classificacoes$categorias[[1]]
 # categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
@@ -93,7 +93,7 @@ nivel_territorial <- ipca$nivelTerritorial$Administrativo
 variaveis <- ipca$variaveis
 # remover o termo INPC das variaveis
 variaveis$nome <- gsub("IPCA - ","", variaveis$nome)
-variaveis <- variaveis[!variaveis$id%in%c(45,66),]
+# variaveis <- variaveis[!variaveis$id%in%c(45,66),]
 # filtrar as categorias
 categorias <- ipca$classificacoes$categorias[[1]]
 # categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
@@ -168,7 +168,7 @@ nivel_territorial <- ipca15$nivelTerritorial$Administrativo
 variaveis <- ipca15$variaveis
 # remover o termo INPC das variaveis
 variaveis$nome <- gsub("IPCA15 - ","", variaveis$nome)
-variaveis <- variaveis[!variaveis$id%in%c(357),]
+# variaveis <- variaveis[!variaveis$id%in%c(357),]
 # filtrar as categorias
 categorias <- ipca15$classificacoes$categorias[[1]]
 # categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
