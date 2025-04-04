@@ -1,6 +1,6 @@
 library(uuid)
 library(readxl)
-
+library(dplyr)
 
 dados_monetarios <- read_excel("credito.xlsx")
 

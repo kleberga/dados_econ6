@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 import 'package:archive/archive.dart';
-import 'package:collection/collection.dart';
 import 'package:dados_economicos6/provider/riverpod.dart';
 import 'package:dados_economicos6/screens/reportar_erro.dart';
 import 'package:dados_economicos6/model/variables_class.dart';
@@ -14,18 +13,18 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:month_picker_dialog/month_picker_dialog.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:toggle_switch/toggle_switch.dart';
 import '../service/back_services.dart';
 import '../infra/database_helper.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'descricao_series.dart';
 import '../model/model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter/services.dart' as rootBundle;
+
 
 String dropdownValue = "";
 String dropdownValueMetrica = "";
@@ -71,9 +70,10 @@ var dtInicial;
 var notFound = false;
 var notFoundText;
 var api1Future;
+var jsonString2;
 
-DateTime startval1 = DateFormat(formatoData).parse('01/2021');
-DateTime endval1 = DateFormat(formatoData).parse('12/2021');
+DateTime startval1 = DateFormat('MM/yyyy').parse('01/2021');
+DateTime endval1 = DateFormat('MM/yyyy').parse('12/2021');
 var corFundo = Color.fromARGB(255, 63, 81, 181);
 List<DadosSeries> listaEscolhida = [];
 
@@ -91,6 +91,7 @@ Future<String> getStringFromLocalStorage(String key) async {
 
 class _TelaDados extends State<TelaDados> {
 
+
   InterstitialAd? _interstitialAd;
   bool isAdLoaded = false;
   bool hasAdBeenShown = false;
@@ -98,7 +99,7 @@ class _TelaDados extends State<TelaDados> {
       ? 'ca-app-pub-5086029981237773~6023541382'
      //  ? 'ca-app-pub-3940256099942544/1033173712'
     //  : 'ca-app-pub-5086029981237773~1901760712';
-        : 'ca-app-pub-3940256099942544~1458002511';
+        : 'ca-app-pub-5086029981237773/9616933315';
 
   void loadAd() {
     InterstitialAd.load(
@@ -177,17 +178,6 @@ class _TelaDados extends State<TelaDados> {
 
   List<serie_app> chartData = [];
 
-  // essas datas para startval1 e endval1 sao apenas para iniciar as variaveis
-  void atribuirValorDataInicial(){
-    if(formatoData == 'dd/MM/yyyy'){
-      dtInicial = '01/01/2021';
-    } else {
-      dtInicial = '01/2021';
-    }
-    startval1 = DateFormat(formatoData).parse(dtInicial);
-    endval1 = DateFormat(formatoData).parse(dtInicial);
-  }
-
   TextEditingController dateInputEnd = TextEditingController();
   TextEditingController dateInputIni = TextEditingController();
 
@@ -199,8 +189,21 @@ class _TelaDados extends State<TelaDados> {
     http.Response response;
     String jsonString;
     var contador = 0;
+    var urlAjustada;
+    if(periodicidade=="diária"){
+      DateTime today = DateTime.now();
+      DateTime originalDate = DateTime(today.year, today.month, today.day);
+      DateTime dateTenYearsBefore = DateTime(
+        originalDate.year - 10,
+        originalDate.month,
+        originalDate.day,
+      );
+      urlAjustada = urlSerie + '&dataInicial=' + dateTenYearsBefore.day.toString().padLeft(2,'0') + '/' + dateTenYearsBefore.month.toString().padLeft(2,'0') + '/' + dateTenYearsBefore.year.toString();
+    } else {
+      urlAjustada = urlSerie;
+    }
     do {
-      response = await getJsonFromRestAPI(urlSerie);
+      response = await getJsonFromRestAPI(urlAjustada);
       jsonString = response.body;
       contador = contador + 1;
     } while(response.statusCode!=200 && contador<=10);
@@ -213,7 +216,7 @@ class _TelaDados extends State<TelaDados> {
       setState(() {
         notFound = false;
       });
-      var jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
+      jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
       jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
       jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
       jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
@@ -245,10 +248,15 @@ class _TelaDados extends State<TelaDados> {
           return a.data.compareTo(b.data);
         });
         endval1 = chartData.last.data;
-        startval1 = chartData[chartData.length-13].data;
         dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
         dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
         listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
+        if(chartData.length>13){
+          startval1 = chartData[chartData.length-13].data;
+        } else {
+          //startval1 = chartData[chartData.length-1].data;
+          startval1 = chartData.first.data;
+        }
         if(listaAnosSerieAnual.length>13){
           anoInicialSelecionado = listaAnosSerieAnual.length-13;
         } else {
@@ -288,7 +296,7 @@ class _TelaDados extends State<TelaDados> {
       setState(() {
         notFound = false;
       });
-      var jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
+      jsonString2 = jsonString.replaceAll('<?xml version="1.0" encoding="pt-br"?>', '');
       jsonString2 = jsonString2.replaceAll('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"', '');
       jsonString2 = jsonString2.replaceAll('"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">', '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"');
       jsonString2 = jsonString2.replaceAll('<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-br" xml:lang="pt-br">', '');
@@ -370,7 +378,7 @@ class _TelaDados extends State<TelaDados> {
         notFound = false;
       });
       var pattern1 = RegExp(r'/* #4D749F */\s*{[^}]*}');
-      var jsonString2 = jsonString.replaceAll(pattern1, '');
+      jsonString2 = jsonString.replaceAll(pattern1, '');
       jsonString2 = jsonString2.replaceAll('/* #4D749F */', '');
       final jsonResponse = json.decode(jsonString2);
       final item = jsonResponse[0]['resultados'][0]['series'][0]['serie'];
@@ -484,7 +492,43 @@ class _TelaDados extends State<TelaDados> {
     return transformedData;
   }
 
-  //late Future<List<DadosSeries>> api1Future;
+/*  Future<void> createAndDownloadCSV() async {
+    String csvData = 'data,valor\n'; // CSV headers
+    print(chartData);
+    print(chartData.runtimeType);
+    for (var item in chartData) {
+      csvData += '${item.data.toIso8601String()},${item.valor}\n';
+    }
+    Directory tempDir = await getTemporaryDirectory();
+    String filePath = '${tempDir.path}/data.csv';
+    File file = File(filePath);
+    await file.writeAsString(csvData);
+    print('CSV saved at: $filePath');
+  }*/
+
+  Future<void> createAndShareCSV() async {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd');
+    // Generate CSV data
+    String csvData = 'data,valor\n';
+
+    for (var item in chartData) {
+      String formattedDate = formatter.format(item.data);
+      csvData += '$formattedDate,${item.valor}\n';
+    }
+
+    // Save the CSV file to the Downloads folder
+    Directory downloadsDir = Directory('/storage/emulated/0/Download');
+    String filePath = '${downloadsDir.path}/series.csv';
+    File file = File(filePath);
+    await file.writeAsString(csvData);
+    // Create a XFile instance
+    XFile csvFile = XFile(filePath, mimeType: 'text/csv');
+
+    // Share the CSV file
+    Share.shareXFiles([csvFile], text: 'Here’s the CSV file!');
+  }
+
+//late Future<List<DadosSeries>> api1Future;
 
   @override
   void initState() {
@@ -934,6 +978,7 @@ class _TelaDados extends State<TelaDados> {
       DateTime dataIni = DateFormat(formatoData).parse(dateInputIni.text.toString());
       DateTime dataFim = DateFormat(formatoData).parse(dateInputEnd.text.toString());
       late var lista_filtrada = itemsBetweenDates(lista: chartData, start: dataIni, end: dataFim);
+      lista_filtrada = itemsBetweenDates(lista: chartData, start: dataIni, end: dataFim);
       lista_filtrada.sort((a, b){ //sorting in descending order
         return a.data.compareTo(b.data);
       });
@@ -1153,9 +1198,7 @@ class _TelaDados extends State<TelaDados> {
                                                       items: listaMostrar.map<DropdownMenuItem<String>>((String value) {
                                                         return DropdownMenuItem<String>(
                                                           value: value,
-                                                          child: Center(
-                                                            child: Text(value),
-                                                          ),
+                                                          child: Center(child: Text(value, textAlign: TextAlign.center,)),
                                                         );
                                                       }).toList(),
                                                     ),
@@ -1276,9 +1319,7 @@ class _TelaDados extends State<TelaDados> {
                                                         items: listaMostrarMetrica.map<DropdownMenuItem<String>>((String value) {
                                                           return DropdownMenuItem<String>(
                                                             value: value,
-                                                            child: Center(
-                                                              child: Text(value),
-                                                            ),
+                                                            child: Center(child: Text(value, textAlign: TextAlign.center,)),
                                                           );
                                                         }).toList(),
                                                       ),
@@ -1392,9 +1433,7 @@ class _TelaDados extends State<TelaDados> {
                                                         items: listaMostrarNivelGeog.map<DropdownMenuItem<String>>((String value) {
                                                           return DropdownMenuItem<String>(
                                                             value: value,
-                                                            child: Center(
-                                                              child: Text(value),
-                                                            ),
+                                                            child: Center(child: Text(value, textAlign: TextAlign.center,)),
                                                           );
                                                         }).toList(),
                                                       ),
@@ -1502,9 +1541,7 @@ class _TelaDados extends State<TelaDados> {
                                                         items: listaMostrarLocalidade.map<DropdownMenuItem<String>>((String value) {
                                                           return DropdownMenuItem<String>(
                                                             value: value,
-                                                            child: Center(
-                                                              child: Text(value),
-                                                            ),
+                                                            child: Center(child: Text(value, textAlign: TextAlign.center,)),
                                                           );
                                                         }).toList(),
                                                       ),
@@ -1592,10 +1629,8 @@ class _TelaDados extends State<TelaDados> {
                                                             },
                                                             items: listaMostrarCategoria.map<DropdownMenuItem<String>>((String value) {
                                                               return DropdownMenuItem<String>(
-                                                                  value: value,
-                                                                  child: Center(
-                                                                    child: Text(value),
-                                                                  )
+                                                                value: value,
+                                                                child: Center(child: Text(value, textAlign: TextAlign.center,)),
                                                               );
                                                             }).toList(),
                                                           ),
@@ -1753,19 +1788,34 @@ class _TelaDados extends State<TelaDados> {
                                                     style: TextStyle(fontSize: 10),
                                                   ),
                                                 ),
-                                                notFound ? Container() : OutlinedButton(
-                                                    onPressed: (){
-                                                      Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(builder: (context) => ReportarErro(codigoSerie: cod_serie,))
-                                                      );
-                                                    },
-                                                    style: ButtonStyle(
-                                                        foregroundColor: WidgetStateProperty.all(Colors.white),
-                                                        backgroundColor: WidgetStateProperty.all(Color(0xFFBE3144))),
-                                                    child: Text("Reportar erro")
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: <Widget>[
+                                                    notFound ? Container() : OutlinedButton(
+                                                        onPressed: (){
+                                                          Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(builder: (context) => ReportarErro(codigoSerie: cod_serie,))
+                                                          );
+                                                        },
+                                                        style: ButtonStyle(
+                                                            foregroundColor: WidgetStateProperty.all(Colors.white),
+                                                            backgroundColor: WidgetStateProperty.all(Color(0xFFBE3144))),
+                                                        child: Text("Reportar erro")
+                                                    ),
+                                                    Padding(padding: EdgeInsets.only(left: 10, right: 10)),
+                                                    notFound ? Container() : OutlinedButton(
+                                                        onPressed: () async {
+                                                          await createAndShareCSV();
+                                                        },
+                                                        style: ButtonStyle(
+                                                            foregroundColor: WidgetStateProperty.all(Colors.white),
+                                                            backgroundColor: WidgetStateProperty.all(Colors.grey[600])),
+                                                        child: Text("Baixar a série")
+                                                    ),
+                                                  ],
                                                 ),
-                                                Padding(padding: EdgeInsets.only(bottom: 10))
+                                                Padding(padding: EdgeInsets.only(bottom: 10)),
                                               ],
                                             );
                                         }

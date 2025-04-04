@@ -2,7 +2,7 @@ library(uuid)
 library(readxl)
 library(dplyr)
 
-dados_monetarios <- read_excel("fiscal_2.xlsx")
+dados_monetarios <- read_excel("merc_fin_cap.xlsx")
 
 lista_nova <- list()
 base_df <- data.frame()
@@ -45,6 +45,6 @@ for(i in c(1:nrow(dados_monetarios))){
 # apagar o numero das linhas
 row.names(base_df) <- NULL
 # exportar como csv
-write.csv(base_df, file="C:/Users/Kleber/Documents/fiscal_2.csv", row.names = F)
+write.csv(base_df, file="C:/Users/Kleber/Documents/merc_fin_cap.csv", row.names = F)
 
 

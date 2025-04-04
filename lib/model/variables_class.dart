@@ -20,6 +20,9 @@ class serie_app {
   toString(){
     return "data: $data, valor: $valor";
   }
+  List<dynamic> toRow(){
+    return [data, valor];
+  }
 }
 
 class serie_app_focus {

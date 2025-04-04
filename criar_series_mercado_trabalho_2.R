@@ -1,5 +1,6 @@
 library(uuid)
-
+library(readxl)
+library(dplyr)
 
 # criar a funcao que simula a classe cadastroSeries existente no app
 cadastroSeries <- function(numero, nome, nomeCompleto, descricao, formato, fonte, urlAPI, idAssunto, periodicidade, metrica, nivelGeografico, localidades,
@@ -1037,8 +1038,57 @@ for(i in c(1:length(listaSeries))){
 }
 # apagar o numero das linhas
 row.names(base_df) <- NULL
+
+#-----------------------------------------------------------------------------------------------------------------------
+# dados do SGS de geracao de empregos regionais
+#-----------------------------------------------------------------------------------------------------------------------
+
+dados_trab <- read_excel("merc_trabalho.xlsx")
+
+lista_nova <- list()
+base_df_2 <- data.frame()
+for(i in c(1:nrow(dados_trab))){
+  
+  if(dados_trab[i,"per"]=="M"){
+    periodicidade <- "mensal"
+  } else if(dados_trab[i,"per"]=="D"){
+    periodicidade <- "diária"
+  } else if(dados_trab[i,"per"]=="A"){
+    periodicidade <- "anual"
+  } else if(dados_trab[i,"per"]=="T"){
+    periodicidade <- "trimestral"
+  } else {
+    periodicidade <- ''
+  }
+  
+  lista_nova[['numero']] <- UUIDgenerate()
+  lista_nova[['nome']] <- as.character(dados_trab[i,"nome"])
+  lista_nova[['nomeCompleto']] <- as.character(dados_trab[i,"nome_completo"])
+  lista_nova[['descricao']] <- as.character(dados_trab[i,"descricao"])
+  lista_nova[['formato']] <- as.character(dados_trab[i,"formato"])
+  lista_nova[['fonte']] <- as.character(dados_trab[i,"fonte"])
+  
+  
+  lista_nova[['urlAPI']] <- as.character(dados_trab[i,"urlAPI"])
+  lista_nova[['idAssunto']] <- as.character(dados_trab[i,"idAssunto"])
+  lista_nova[['periodicidade']] <- periodicidade
+  lista_nova[['metrica']] <- as.character(dados_trab[i,"metrica"])
+  lista_nova[['nivelGeografico']] <- as.character(dados_trab[i,"nivel_geog"])
+  lista_nova[['localidades']] <- as.character(dados_trab[i,"localidades"])
+  lista_nova[['categoria']] <- as.character(dados_trab[i,"categoria"])
+  
+  
+  teste <- do.call("cbind",lista_nova)
+  teste2 <- as.data.frame(teste)
+  base_df_2 <- bind_rows(base_df_2, teste2)
+  
+}
+
+base_df_3 <- bind_rows(base_df, base_df_2)
+
+
 # exportar como csv
-write.csv(base_df, file="C:/Users/Kleber/Documents/mercado_trabalho_2.csv", row.names = F)
+write.csv(base_df_3, file="C:/Users/Kleber/Documents/mercado_trabalho_2.csv", row.names = F)
      
 
 

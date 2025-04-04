@@ -1,4 +1,6 @@
 library(uuid)
+library(readxl)
+library(dplyr)
 
 
 # criar a funcao que simula a classe cadastroSeries existente no app
@@ -3352,8 +3354,57 @@ for(i in c(1:length(listaSeries))){
 }
 # apagar o numero das linhas
 row.names(base_df) <- NULL
+
+
+
+dados_monetarios <- read_excel("setor_externo.xlsx")
+
+lista_nova_2 <- list()
+base_df_2 <- data.frame()
+for(i in c(1:nrow(dados_monetarios))){
+  
+  if(dados_monetarios[i,"per"]=="M"){
+    periodicidade <- "mensal"
+  } else if(dados_monetarios[i,"per"]=="D"){
+    periodicidade <- "diária"
+  } else if(dados_monetarios[i,"per"]=="A"){
+    periodicidade <- "anual"
+  } else if(dados_monetarios[i,"per"]=="T"){
+    periodicidade <- "trimestral"
+  } else {
+    periodicidade <- ''
+  }
+  
+  lista_nova_2[['numero']] <- UUIDgenerate()
+  lista_nova_2[['nome']] <- as.character(dados_monetarios[i,"nome"])
+  lista_nova_2[['nomeCompleto']] <- as.character(dados_monetarios[i,"nome_completo"])
+  lista_nova_2[['descricao']] <- as.character(dados_monetarios[i,"descricao"])
+  lista_nova_2[['formato']] <- as.character(dados_monetarios[i,"formato"])
+  lista_nova_2[['fonte']] <- as.character(dados_monetarios[i,"fonte"])
+  
+  
+  lista_nova_2[['urlAPI']] <- as.character(dados_monetarios[i,"urlAPI"])
+  lista_nova_2[['idAssunto']] <- as.character(dados_monetarios[i,"idAssunto"])
+  lista_nova_2[['periodicidade']] <- periodicidade
+  lista_nova_2[['metrica']] <- as.character(dados_monetarios[i,"metrica"])
+  lista_nova_2[['nivelGeografico']] <- as.character(dados_monetarios[i,"nivel_geog"])
+  lista_nova_2[['localidades']] <- as.character(dados_monetarios[i,"localidades"])
+  lista_nova_2[['categoria']] <- as.character(dados_monetarios[i,"categoria"])
+  
+  
+  teste <- do.call("cbind",lista_nova_2)
+  teste2 <- as.data.frame(teste)
+  base_df_2 <- bind_rows(base_df_2, teste2)
+  
+}
+# apagar o numero das linhas
+row.names(base_df_2) <- NULL
+
+
+base_df_3 <- bind_rows(base_df, base_df_2)
+
 # exportar como csv
-write.csv(base_df, file="C:/Users/Kleber/Documents/setor_externo_2.csv", row.names = F)
+write.csv(base_df_3, file="C:/Users/Kleber/Documents/setor_externo_2.csv", row.names = F)
      
 
 
