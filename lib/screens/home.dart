@@ -54,7 +54,7 @@ class _HomeState extends State<Home> {
             ),
             child: ElevatedButton(
                 style: ButtonStyle(
-                  fixedSize: WidgetStateProperty.all(Size(200, 40)),
+                  fixedSize: WidgetStateProperty.all(Size(210, 40)),
                   backgroundColor: WidgetStateProperty.all(corFundo,),
                   overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
                     if (states.contains(WidgetState.pressed)) {

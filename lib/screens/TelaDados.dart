@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:month_picker_dialog/month_picker_dialog.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -492,20 +493,6 @@ class _TelaDados extends State<TelaDados> {
     return transformedData;
   }
 
-/*  Future<void> createAndDownloadCSV() async {
-    String csvData = 'data,valor\n'; // CSV headers
-    print(chartData);
-    print(chartData.runtimeType);
-    for (var item in chartData) {
-      csvData += '${item.data.toIso8601String()},${item.valor}\n';
-    }
-    Directory tempDir = await getTemporaryDirectory();
-    String filePath = '${tempDir.path}/data.csv';
-    File file = File(filePath);
-    await file.writeAsString(csvData);
-    print('CSV saved at: $filePath');
-  }*/
-
   Future<void> createAndShareCSV() async {
     final DateFormat formatter = DateFormat('yyyy-MM-dd');
     // Generate CSV data
@@ -515,10 +502,15 @@ class _TelaDados extends State<TelaDados> {
       String formattedDate = formatter.format(item.data);
       csvData += '$formattedDate,${item.valor}\n';
     }
-
     // Save the CSV file to the Downloads folder
-    Directory downloadsDir = Directory('/storage/emulated/0/Download');
-    String filePath = '${downloadsDir.path}/series.csv';
+    String filePath;
+    if(Platform.isAndroid){
+      Directory downloadsDir = Directory('/storage/emulated/0/Download');
+      filePath = '${downloadsDir.path}/series.csv';
+    } else {
+      final directory = await getApplicationDocumentsDirectory();
+      filePath = '${directory.path}/series.csv';
+    }
     File file = File(filePath);
     await file.writeAsString(csvData);
     // Create a XFile instance
