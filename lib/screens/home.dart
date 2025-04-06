@@ -134,12 +134,14 @@ class _HomeState extends State<Home> {
         ),
       ),
       body:
-      Stack(
-        children: [
-          Column(
-            children: _isLoading ? _circular : buttons,
-          ),
-        ],
+      SingleChildScrollView(
+        child: Stack(
+          children: [
+            Column(
+              children: _isLoading ? _circular : buttons,
+            ),
+          ],
+        ),
       ),
       drawer: Drawer(
         child: ListView(
