@@ -2,12 +2,14 @@ import 'package:archive/archive.dart';
 import 'package:dados_economicos6/model/model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'TelaDados.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart' as rootBundle;
 import 'dart:convert';
 import 'package:diacritic/diacritic.dart';
+
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -18,6 +20,40 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool _isLoading = false;
   List<Widget> buttons = [];
+
+  Future<void> checkForUpdate() async {
+    try {
+      final updateInfo = await InAppUpdate.checkForUpdate();
+
+      if (!mounted) return; // Ensure the widget is still in the tree
+
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        final shouldUpdate = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Atualização disponível'),
+            content: Text('Uma nova versão do app está disponível. Deseja atualizar agora?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text('Mais tarde'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text('Atualizar'),
+              ),
+            ],
+          ),
+        );
+
+        if (shouldUpdate == true && mounted) {
+          await InAppUpdate.performImmediateUpdate();
+        }
+      }
+    } catch (e) {
+      print('Falha ao verificar atualização: $e');
+    }
+  }
 
   void fetchData() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -103,6 +139,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    checkForUpdate();
     fetchData();
   }
 
@@ -137,8 +174,11 @@ class _HomeState extends State<Home> {
       SingleChildScrollView(
         child: Stack(
           children: [
-            Column(
-              children: _isLoading ? _circular : buttons,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: Column(
+                children: _isLoading ? _circular : buttons,
+              ),
             ),
           ],
         ),

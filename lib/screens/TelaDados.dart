@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -97,7 +98,7 @@ class _TelaDados extends State<TelaDados> {
   bool isAdLoaded = false;
   bool hasAdBeenShown = false;
   final adUnitId = Platform.isAndroid
-      ? 'ca-app-pub-5086029981237773~6023541382'
+      ? 'ca-app-pub-5086029981237773/2909242477'
      //  ? 'ca-app-pub-3940256099942544/1033173712'
     //  : 'ca-app-pub-5086029981237773~1901760712';
         : 'ca-app-pub-5086029981237773/9616933315';
@@ -136,7 +137,10 @@ class _TelaDados extends State<TelaDados> {
             _interstitialAd = ad;
             isAdLoaded = true;
             if(!hasAdBeenShown) {
-              _showInterstitialAd();
+              //_showInterstitialAd();
+              Future.delayed(Duration(seconds: 10), () {
+                _showInterstitialAd();
+              });
             }
           },
           // Called when an ad request failed.
@@ -493,33 +497,101 @@ class _TelaDados extends State<TelaDados> {
     return transformedData;
   }
 
-  Future<void> createAndShareCSV() async {
-    final DateFormat formatter = DateFormat('yyyy-MM-dd');
-    // Generate CSV data
-    String csvData = 'data,valor\n';
-
-    for (var item in chartData) {
-      String formattedDate = formatter.format(item.data);
-      csvData += '$formattedDate,${item.valor}\n';
-    }
-    // Save the CSV file to the Downloads folder
-    String filePath;
-    if(Platform.isAndroid){
-      Directory downloadsDir = Directory('/storage/emulated/0/Download');
-      filePath = '${downloadsDir.path}/series.csv';
-    } else {
-      final directory = await getApplicationDocumentsDirectory();
-      filePath = '${directory.path}/series.csv';
-    }
-    File file = File(filePath);
-    await file.writeAsString(csvData);
-    // Create a XFile instance
-    XFile csvFile = XFile(filePath, mimeType: 'text/csv');
-
-    // Share the CSV file
-    Share.shareXFiles([csvFile], text: 'Here’s the CSV file!');
+  Future<void> showPermissionDialog(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Permissão requerida'),
+          content: Text(
+            'Este aplicativo requer permissão para salvar e compartilhar arquivos. Por favor, habilite a permissão.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await openAppSettings(); // Opens app settings for the user to enable permissions
+              },
+              child: Text('Configurações'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
+  /*Future<void> createAndShareCSV() async {
+
+    PermissionStatus status = await Permission.storage.status;
+
+    print("status.isGranted: ${status.isGranted}");
+    if (status.isGranted) {
+      final DateFormat formatter = DateFormat('yyyy-MM-dd');
+      // Generate CSV data
+      String csvData = 'data,valor\n';
+
+      for (var item in chartData) {
+        String formattedDate = formatter.format(item.data);
+        csvData += '$formattedDate,${item.valor}\n';
+      }
+      // Save the CSV file to the Downloads folder
+      String filePath;
+      if(Platform.isAndroid){
+        Directory downloadsDir = Directory('/storage/emulated/0/Download');
+        filePath = '${downloadsDir.path}/series.csv';
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        filePath = '${directory.path}/series.csv';
+      }
+      File file = File(filePath);
+      await file.writeAsString(csvData);
+      // Create a XFile instance
+      XFile csvFile = XFile(filePath, mimeType: 'text/csv');
+
+      // Share the CSV file
+      Share.shareXFiles([csvFile], text: 'Here’s the CSV file!');
+    } else if(status.isDenied) {
+      await showPermissionDialog(context);
+    } else if(status.isPermanentlyDenied) {
+      await openAppSettings();
+    }
+  }*/
+  Future<void> createAndShareCSV() async {
+
+    PermissionStatus status = await Permission.manageExternalStorage.status;
+
+      final DateFormat formatter = DateFormat('yyyy-MM-dd');
+      // Generate CSV data
+      String csvData = 'data,valor\n';
+
+      for (var item in chartData) {
+        String formattedDate = formatter.format(item.data);
+        csvData += '$formattedDate,${item.valor}\n';
+      }
+      // Save the CSV file to the Downloads folder
+      String filePath;
+      if(Platform.isAndroid){
+        //Directory downloadsDir = Directory('/storage/emulated/0/Download');
+        Directory downloadsDir = await getTemporaryDirectory();
+        filePath = '${downloadsDir.path}/series.csv';
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        filePath = '${directory.path}/series.csv';
+      }
+      File file = File(filePath);
+      await file.writeAsString(csvData);
+      // Create a XFile instance
+      XFile csvFile = XFile(filePath, mimeType: 'text/csv');
+
+      // Share the CSV file
+      Share.shareXFiles([csvFile], text: 'Here’s the CSV file!');
+  }
 //late Future<List<DadosSeries>> api1Future;
 
   @override
@@ -629,6 +701,7 @@ class _TelaDados extends State<TelaDados> {
 
     dropdownValue = "1";
   }
+
 
 
   void _showDialog(Widget child) async {
@@ -1019,6 +1092,8 @@ class _TelaDados extends State<TelaDados> {
     } else {
       valorItemHeightSerie = 50.0;
     }
+
+    print("textSize: ${_textSize(dropdownValueMetrica, TextStyle(fontWeight: FontWeight.normal, fontSize: 15)).width}");
 
     if(_textSize(dropdownValueMetrica, TextStyle(fontWeight: FontWeight.normal, fontSize: 15)).width<=327){
       alturaMetrica = 40.0;
