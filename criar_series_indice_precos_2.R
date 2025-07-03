@@ -599,7 +599,7 @@ listaSeries <- list(
                  "https://api.bcb.gov.br/dados/serie/bcdata.sgs.21379/dados?formato=json",
                  1,
                  "mensal",
-                 "Percentual de subitens com variação positiva.",
+                 "Percentual de subitens com variação positiva",
                  "Brasil",
                  "Brasil",
                  "Difusão"),
