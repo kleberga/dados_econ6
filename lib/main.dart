@@ -24,8 +24,6 @@ Future<void> main() async {
   // the application's lifecycle, handling input gestures, and triggering the build
   // and layout of widgets.
   WidgetsFlutterBinding.ensureInitialized();
-  // final notificationService = NotificationService();
-  // await notificationService.initNotification();
   MobileAds.instance.initialize();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,

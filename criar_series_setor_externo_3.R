@@ -1,7 +1,7 @@
 library(uuid)
 library(readxl)
 library(dplyr)
-
+library(jsonlite)
 
 # criar a funcao que simula a classe cadastroSeries existente no app
   cadastroSeries <- function(numero, nome, nomeCompleto, descricao, formato, fonte, urlAPI, idAssunto, periodicidade, metrica, nivelGeografico, localidades,
@@ -3400,7 +3400,9 @@ for(i in c(1:nrow(dados_monetarios))){
 # apagar o numero das linhas
 row.names(base_df_2) <- NULL
 
-
+#_______________________________________________________________________________________________________________________
+# agrupar dados
+#_______________________________________________________________________________________________________________________
 base_df_3 <- bind_rows(base_df, base_df_2)
 
 # exportar como csv

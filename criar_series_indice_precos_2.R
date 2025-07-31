@@ -1509,9 +1509,13 @@ for(i in c(1:length(listaSeries))){
 # apagar o numero das linhas
 row.names(base_df) <- NULL
 
+# carregar os dados do IPEA
+precos_ipea <- read_excel("C:/Users/Kleber/Documents/precos_ipeadata.xlsx")
+
 # unir as bases
 
-base_df_2 <- bind_rows(base_ipca, base_inpc, base_ipca15, base_df, base_sinapi_647, base_sinapi_2296, base_sinapi_6586)
+base_df_2 <- bind_rows(base_ipca, base_inpc, base_ipca15, base_df, base_sinapi_647, base_sinapi_2296, base_sinapi_6586,
+                       precos_ipea)
 
 # exportar como csv
 write.csv(base_df_2, file="C:/Users/Kleber/Documents/indice_precos_3.csv", row.names = F)

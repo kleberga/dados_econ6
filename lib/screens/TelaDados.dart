@@ -259,7 +259,6 @@ class _TelaDados extends State<TelaDados> {
         if(chartData.length>13){
           startval1 = chartData[chartData.length-13].data;
         } else {
-          //startval1 = chartData[chartData.length-1].data;
           startval1 = chartData.first.data;
         }
         if(listaAnosSerieAnual.length>13){
@@ -412,13 +411,126 @@ class _TelaDados extends State<TelaDados> {
               w = "12";
             }
           }
-          //x = formatter1.format(int.parse(x.substring(4))) + "/" + formatter2.format(int.parse(x.substring(0, 4)));
           x = w + "/" + formatter2.format(int.parse(x.substring(0, 4)));
           var y = item.values.toList()[i].toString();
           if(y!="..."&&y!="-"&&y!="X"){
             chartData.add(
                 serie_app(
                     DateFormat('MM/yyyy').parse(x),
+                    double.parse(y)
+                )
+            );
+          }
+        }
+        chartData.sort((a, b){ //sorting in descending order
+          return a.data.compareTo(b.data);
+        });
+        if(chartData.isEmpty){
+          setState(() {
+            notFound = true;
+            notFoundText = "Esta série não possui valores! Altere os filtros da pesquisa.";
+          });
+        } else {
+          setState(() {
+            notFound = false;
+          });
+          dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
+          dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
+          ultimaDataIPCA = chartData.last.data;
+          listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
+          if(listaAnosSerieAnual.length>13){
+            anoInicialSelecionado = listaAnosSerieAnual.length-13;
+          } else {
+            anoInicialSelecionado = listaAnosSerieAnual.length;
+          }
+          if(listaAnosSerieAnual.length>0){
+            anoFinalSelecionado = listaAnosSerieAnual.length-1;
+          } else {
+            anoFinalSelecionado = listaAnosSerieAnual.length;
+          }
+          endval1 = chartData.last.data;
+          if(chartData.length>13){
+            startval1 = chartData[chartData.length-13].data;
+          } else {
+            startval1 = chartData.first.data;
+          }
+        }
+      });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('dataFinal', endval1.toString());
+    }
+  }
+
+  Future loadDataIPEADATA() async {
+    setState(() {
+      listaAnosSerieAnual.clear();
+      notFound = false;
+    });
+    http.Response response;
+    String jsonString;
+    var contador = 0;
+    do {
+      response = await getJsonFromRestAPI(urlSerie);
+      jsonString = response.body;
+      contador = contador + 1;
+    } while(response.statusCode!=200 && contador<=10);
+    if(response.statusCode!=200){
+      setState(() {
+        notFound = true;
+        notFoundText = "Dados não disponíveis no momento. A fonte dos dados desta série pode estar temporariamente indisponível. Tente mais tarde!";
+      });
+    } else {
+      setState(() {
+        notFound = false;
+      });
+      var pattern1 = RegExp(r'/* #4D749F */\s*{[^}]*}');
+      jsonString2 = jsonString.replaceAll(pattern1, '');
+      jsonString2 = jsonString2.replaceAll('/* #4D749F */', '');
+      final jsonResponse = json.decode(jsonString2);
+      final item = jsonResponse['value'];
+      if(chartData.isNotEmpty){
+        chartData.clear();
+      }
+      setState(() {
+        for (var i = 0; i<item.length; i++){
+          var x = item[i]['VALDATA'];
+          var w = formatter1.format(int.parse(x.substring(5,7)));
+          var ano = formatter2.format(int.parse(x.substring(0, 4)));
+          if(periodicidade=="trimestral") {
+            if(w=="01"){
+              w = "03";
+            } else if(w=="02"){
+              w = "06";
+            } else if(w=="03"){
+              w = "09";
+            } else {
+              w = "12";
+            }
+            x = w + "/" + ano;
+          }
+          if(periodicidade=="semestral") {
+            if(w=="01"){
+              w = "06";
+            } else {
+              w = "12";
+            }
+            x = w + "/" + ano;
+          }
+          if(periodicidade=="diária") {
+            var dia = formatter2.format(int.parse(x.substring(8, 10)));
+            x = dia + "/" + w + "/" + ano;
+          }
+          if(periodicidade == "anual"){
+            x = ano;
+          }
+          if(periodicidade=="mensal") {
+            x = w + "/" + ano;
+          }
+          var y = item[i]['VALVALOR'].toString();
+          if(y!="..."&&y!="-"&&y!="X"&&y!="null"){
+            chartData.add(
+                serie_app(
+                    DateFormat(formatoData).parse(x),
                     double.parse(y)
                 )
             );
@@ -526,42 +638,6 @@ class _TelaDados extends State<TelaDados> {
     );
   }
 
-  /*Future<void> createAndShareCSV() async {
-
-    PermissionStatus status = await Permission.storage.status;
-
-    print("status.isGranted: ${status.isGranted}");
-    if (status.isGranted) {
-      final DateFormat formatter = DateFormat('yyyy-MM-dd');
-      // Generate CSV data
-      String csvData = 'data,valor\n';
-
-      for (var item in chartData) {
-        String formattedDate = formatter.format(item.data);
-        csvData += '$formattedDate,${item.valor}\n';
-      }
-      // Save the CSV file to the Downloads folder
-      String filePath;
-      if(Platform.isAndroid){
-        Directory downloadsDir = Directory('/storage/emulated/0/Download');
-        filePath = '${downloadsDir.path}/series.csv';
-      } else {
-        final directory = await getApplicationDocumentsDirectory();
-        filePath = '${directory.path}/series.csv';
-      }
-      File file = File(filePath);
-      await file.writeAsString(csvData);
-      // Create a XFile instance
-      XFile csvFile = XFile(filePath, mimeType: 'text/csv');
-
-      // Share the CSV file
-      Share.shareXFiles([csvFile], text: 'Here’s the CSV file!');
-    } else if(status.isDenied) {
-      await showPermissionDialog(context);
-    } else if(status.isPermanentlyDenied) {
-      await openAppSettings();
-    }
-  }*/
   Future<void> createAndShareCSV() async {
 
     PermissionStatus status = await Permission.manageExternalStorage.status;
@@ -577,7 +653,6 @@ class _TelaDados extends State<TelaDados> {
       // Save the CSV file to the Downloads folder
       String filePath;
       if(Platform.isAndroid){
-        //Directory downloadsDir = Directory('/storage/emulated/0/Download');
         Directory downloadsDir = await getTemporaryDirectory();
         filePath = '${downloadsDir.path}/series.csv';
       } else {
@@ -649,7 +724,6 @@ class _TelaDados extends State<TelaDados> {
           }
           listaMostrarCategoria.addAll(otherAssuntos);
 
-          //listaMostrarCategoria.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValueCategoria = listaMostrarCategoria.first;
 
           urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
@@ -688,8 +762,10 @@ class _TelaDados extends State<TelaDados> {
             loadDataSGS();
           } else if(fonte == "Banco Central do Brasil - Pesquisa Focus"){
             loadDataFocus();
-          } else {
+          } else if(fonte == "IBGE") {
             loadDataIBGE();
+          } else {
+            loadDataIPEADATA();
           }
         });
 
@@ -698,7 +774,6 @@ class _TelaDados extends State<TelaDados> {
         listaEscolhida = [];
       });
     });
-
     dropdownValue = "1";
   }
 
@@ -848,11 +923,6 @@ class _TelaDados extends State<TelaDados> {
                 //set it true, so that user will not able to edit text
                 onTap: () async {
                   Intl.defaultLocale = 'pt_BR';
-/*                  DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: startval1,
-                      firstDate: DateFormat(formatoData).parse(dataInicialSerie),
-                      lastDate: DateFormat(formatoData).parse(dataFinalSerie));*/
                   DateTime? pickedDate = await showDatePicker(
                       context: context,
                       initialDate: startval1,
@@ -1014,9 +1084,6 @@ class _TelaDados extends State<TelaDados> {
 
   @override
   Widget build(BuildContext context) {
-    // isAdLoaded ? _interstitialAd?.show() : CircularProgressIndicator();
-    //isAdLoaded ? showAd() : CircularProgressIndicator();
-
     Future<void> startService() async {
       await FlutterBackgroundService().startService();
     }
@@ -1092,8 +1159,6 @@ class _TelaDados extends State<TelaDados> {
     } else {
       valorItemHeightSerie = 50.0;
     }
-
-    print("textSize: ${_textSize(dropdownValueMetrica, TextStyle(fontWeight: FontWeight.normal, fontSize: 15)).width}");
 
     if(_textSize(dropdownValueMetrica, TextStyle(fontWeight: FontWeight.normal, fontSize: 15)).width<=327){
       alturaMetrica = 40.0;
@@ -1180,7 +1245,7 @@ class _TelaDados extends State<TelaDados> {
                                                       onChanged: (String? value) {
                                                         // This is called when the user selects an item.
                                                         setState(() {
-                                                          //listaMostrar = listaEscolhida.map((element) => element.nome.toString()).toList().toSet().toList();
+
                                                           dropdownValue = value!;
                                                           listaMostrarMetrica = listaEscolhida.where((element) => element.nome==dropdownValue).map((e) => e.metrica.toString()).toSet().toList();
                                                           listaMostrarMetrica.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
@@ -1257,6 +1322,8 @@ class _TelaDados extends State<TelaDados> {
                                                             loadDataSGS();
                                                           } else if(fonte == "IBGE")  {
                                                             loadDataIBGE();
+                                                          } else if(fonte == "IPEADATA"){
+                                                            loadDataIPEADATA();
                                                           } else {
                                                             loadDataFocus();
                                                           }
@@ -1378,6 +1445,8 @@ class _TelaDados extends State<TelaDados> {
                                                               loadDataSGS();
                                                             } else if(fonte == "IBGE")  {
                                                               loadDataIBGE();
+                                                            } else if(fonte == "IPEADATA"){
+                                                              loadDataIPEADATA();
                                                             } else {
                                                               loadDataFocus();
                                                             }
@@ -1492,6 +1561,8 @@ class _TelaDados extends State<TelaDados> {
                                                               loadDataSGS();
                                                             } else if(fonte == "IBGE")  {
                                                               loadDataIBGE();
+                                                            } else if(fonte == "IPEADATA"){
+                                                              loadDataIPEADATA();
                                                             } else {
                                                               loadDataFocus();
                                                             }
@@ -1600,6 +1671,8 @@ class _TelaDados extends State<TelaDados> {
                                                               loadDataSGS();
                                                             } else if(fonte == "IBGE")  {
                                                               loadDataIBGE();
+                                                            } else if(fonte == "IPEADATA"){
+                                                              loadDataIPEADATA();
                                                             } else {
                                                               loadDataFocus();
                                                             }
@@ -1689,6 +1762,8 @@ class _TelaDados extends State<TelaDados> {
                                                                   loadDataSGS();
                                                                 } else if(fonte == "IBGE")  {
                                                                   loadDataIBGE();
+                                                                } else if(fonte == "IPEADATA"){
+                                                                  loadDataIPEADATA();
                                                                 } else {
                                                                   loadDataFocus();
                                                                 }

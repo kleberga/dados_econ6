@@ -98,7 +98,7 @@ for(i in 1:nrow(variaveis)){
           lista_dados[['formato']] <- variaveis[i,"unidade"]
           lista_dados[['fonte']] <- "IBGE"
           lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/254/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]|",categorias3[c,"classif"],"[",categorias3[c,"id"],"]")
-          lista_dados[['idAssunto']] <- 1
+          lista_dados[['idAssunto']] <- 9
           lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
           lista_dados[['metrica']] <-variaveis[i,"nome"]
           lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -170,7 +170,7 @@ for(i in 1:nrow(variaveis)){
           lista_dados[['formato']] <- variaveis[i,"unidade"]
           lista_dados[['fonte']] <- "IBGE"
           lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/259/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]")
-          lista_dados[['idAssunto']] <- 1
+          lista_dados[['idAssunto']] <- 9
           lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
           lista_dados[['metrica']] <- variaveis[i,"nome"]
           lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -238,7 +238,7 @@ for(i in 1:nrow(variaveis)){
         lista_dados[['formato']] <- "Quilogramas por Hectare"
         lista_dados[['fonte']] <- "IBGE"
         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/188/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-        lista_dados[['idAssunto']] <- 1
+        lista_dados[['idAssunto']] <- 9
         lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
         lista_dados[['metrica']] <-variaveis[i,"nome"]
         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -307,7 +307,7 @@ for(i in 1:nrow(variaveis)){
         }
         lista_dados[['fonte']] <- "IBGE"
         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1618/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-        lista_dados[['idAssunto']] <- 1
+        lista_dados[['idAssunto']] <- 9
         lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
         lista_dados[['metrica']] <-variaveis[i,"nome"]
         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -371,7 +371,7 @@ for(i in 1:nrow(variaveis)){
         lista_dados[['formato']] <- variaveis[i,"unidade"]
         lista_dados[['fonte']] <- "IBGE"
         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/7524/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-        lista_dados[['idAssunto']] <- 1
+        lista_dados[['idAssunto']] <- 9
         lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
         lista_dados[['metrica']] <- variaveis[i,"nome"]
         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -435,7 +435,7 @@ for(i in 1:nrow(variaveis)){
         lista_dados[['formato']] <- variaveis[i,"unidade"]
         lista_dados[['fonte']] <- "IBGE"
         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1088/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-        lista_dados[['idAssunto']] <- 1
+        lista_dados[['idAssunto']] <- 9
         lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
         lista_dados[['metrica']] <-variaveis[i,"nome"]
         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -496,7 +496,7 @@ for(i in 1:nrow(variaveis)){
         lista_dados[['formato']] <- variaveis[i,"unidade"]
         lista_dados[['fonte']] <- "IBGE"
         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1089/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]")
-        lista_dados[['idAssunto']] <- 1
+        lista_dados[['idAssunto']] <- 9
         lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
         lista_dados[['metrica']] <- variaveis[i,"nome"]
         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -558,7 +558,7 @@ for(i in 1:nrow(variaveis)){
         lista_dados[['formato']] <- variaveis[i,"unidade"]
         lista_dados[['fonte']] <- "IBGE"
         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1090/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-        lista_dados[['idAssunto']] <- 1
+        lista_dados[['idAssunto']] <- 9
         lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
         lista_dados[['metrica']] <-variaveis[i,"nome"]
         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -621,7 +621,7 @@ for(i in 1:nrow(variaveis)){
         lista_dados[['formato']] <- variaveis[i,"unidade"]
         lista_dados[['fonte']] <- "IBGE"
         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1086/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-        lista_dados[['idAssunto']] <- 1
+        lista_dados[['idAssunto']] <- 9
         lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
         lista_dados[['metrica']] <-variaveis[i,"nome"]
         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -687,7 +687,7 @@ for(i in 1:nrow(variaveis)){
           lista_dados[['formato']] <- variaveis[i,"unidade"]
           lista_dados[['fonte']] <- "IBGE"
           lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1092/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]|",categorias3[c,"classif"],"[",categorias3[c,"id"],"]")
-          lista_dados[['idAssunto']] <- 1
+          lista_dados[['idAssunto']] <- 9
           lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
           lista_dados[['metrica']] <- paste0("Abate de bovinos - ", variaveis[i,"nome"])
           lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -751,7 +751,7 @@ for(i in 1:nrow(variaveis)){
           lista_dados[['formato']] <- variaveis[i,"unidade"]
           lista_dados[['fonte']] <- "IBGE"
           lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1093/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-          lista_dados[['idAssunto']] <- 1
+          lista_dados[['idAssunto']] <- 9
           lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
           lista_dados[['metrica']] <- paste0("Abate de suínos - ", variaveis[i,"nome"])
           lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -814,7 +814,7 @@ for(i in 1:nrow(variaveis)){
           lista_dados[['formato']] <- variaveis[i,"unidade"]
           lista_dados[['fonte']] <- "IBGE"
           lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1094/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-          lista_dados[['idAssunto']] <- 1
+          lista_dados[['idAssunto']] <- 9
           lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
           lista_dados[['metrica']] <- paste0("Abate de frangos - ", variaveis[i,"nome"])
           lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
@@ -830,8 +830,60 @@ for(i in 1:nrow(variaveis)){
 # apagar o numero das linhas
 row.names(base_est_1094) <- NULL
 
+#_______________________________________________________________________________________________________________________
+# carregar as series do IPEADATA ----
+#_______________________________________________________________________________________________________________________
+
+ipeadata_arq <- read_excel("C:/Users/Kleber/Documents/agropecuaria_ipeadata.xlsx")
+
+lista_nova <- list()
+base_df_nova <- data.frame()
+# alterar o codigo das series
+for(i in c(1:nrow(ipeadata_arq))){
+  # Split the text at commas 
+  nova_base <- ipeadata_arq[i,,drop=F]
+  
+  if(nova_base$periodicidade=="M"){
+    periodicidade <- "mensal"
+  } else if(nova_base$periodicidade=="D"){
+    periodicidade <- "diária"
+  } else if(nova_base$periodicidade=="A"){
+    periodicidade <- "anual"
+  } else if(nova_base$periodicidade=="T"){
+    periodicidade <- "trimestral"
+  } else {
+    periodicidade <- ''
+  }
+  
+  lista_nova[['numero']] <- UUIDgenerate()
+  lista_nova[['nome']] <- nova_base$nome
+  lista_nova[['nomeCompleto']] <- nova_base$nomeCompleto
+  lista_nova[['descricao']] <- nova_base$descricao
+  lista_nova[['formato']] <- nova_base$formato
+  lista_nova[['fonte']] <- nova_base$fonte
+
+  
+  lista_nova[['urlAPI']] <- nova_base$urlAPI
+  lista_nova[['idAssunto']] <- nova_base$idAssunto
+  lista_nova[['periodicidade']] <- periodicidade
+  lista_nova[['metrica']] <- nova_base$metrica
+  lista_nova[['nivelGeografico']] <- nova_base$nivelGeografico
+  lista_nova[['localidades']] <- nova_base$localidades
+  lista_nova[['categoria']] <- nova_base$categoria
+  
+  teste <- do.call("cbind",lista_nova)
+  teste2 <- as.data.frame(teste)
+  base_df_nova <- bind_rows(base_df_nova, teste2)
+}
+
+
+
+
+
+
+
 base_df_2 <- bind_rows(base_est_254, base_est_259, base_est_188, base_est_1618, base_est_7524, base_est_1088, 
-                       base_est_1089, base_est_1090, base_est_1086, base_est_1092, base_est_1093, base_est_1094)
+                       base_est_1089, base_est_1090, base_est_1086, base_est_1092, base_est_1093, base_est_1094, base_df_nova)
 
 # exportar como csv
 write.csv(base_df_2, file="C:/Users/Kleber/Documents/agropecuaria.csv", row.names = F)
