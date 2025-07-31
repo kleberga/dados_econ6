@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 import 'package:archive/archive.dart';
-import 'package:dados_economicos6/provider/riverpod.dart';
 import 'package:dados_economicos6/screens/reportar_erro.dart';
 import 'package:dados_economicos6/model/variables_class.dart';
 import 'package:flutter/cupertino.dart';
@@ -26,6 +25,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../main.dart';
 import 'package:diacritic/diacritic.dart';
 import 'package:flutter/services.dart' as rootBundle;
+import 'package:dados_economicos6/provider/lista_meus_dados.dart';
 
 
 String dropdownValue = "";
@@ -499,9 +499,9 @@ class _TelaDados extends State<TelaDados> {
           if(periodicidade=="trimestral") {
             if(w=="01"){
               w = "03";
-            } else if(w=="02"){
+            } else if(w=="04"){
               w = "06";
-            } else if(w=="03"){
+            } else if(w=="07"){
               w = "09";
             } else {
               w = "12";
@@ -678,10 +678,10 @@ class _TelaDados extends State<TelaDados> {
     api1Future = fetchData(codAssunto);
     api1Future.then((data) {
         setState(() {
-          var listaMeusDados = providerContainer.read(listaMeusDadosProvider);
+          var listaMeusDados = providerContainer.read(listaMeusDadosProvider.notifier);
 
           listaMeusDados.setListaEscolhida(data);
-          listaEscolhida = listaMeusDados.getListaEscolhida;
+          listaEscolhida = providerContainer.read(listaMeusDadosProvider);
 
           listaMostrar = listaEscolhida.map((element) => element.nome.toString()).toList().toSet().toList();
           listaMostrar.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
@@ -830,21 +830,23 @@ class _TelaDados extends State<TelaDados> {
                     dialogSettings: PickerDialogSettings(
                       dialogRoundedCornersRadius: 20,
                     ),
+                      actionBarSettings: PickerActionBarSettings(
+                          confirmWidget:  Text(
+                            'OK',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 63, 81, 181),
+                            ),
+                          ),
+                          cancelWidget: Text(
+                            'Cancelar',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 63, 81, 181),
+                            ),
+                          )
+                      )
                   ),
-                  confirmWidget:  Text(
-                    'OK',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 63, 81, 181),
-                    ),
-                  ),
-                  cancelWidget: Text(
-                    'Cancelar',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 63, 81, 181),
-                    ),
-                  )
                 );
                 if (pickedDate != null) {
                   String formattedDate =
@@ -881,21 +883,23 @@ class _TelaDados extends State<TelaDados> {
                       dialogSettings: PickerDialogSettings(
                         dialogRoundedCornersRadius: 20,
                       ),
+                        actionBarSettings: PickerActionBarSettings(
+                            confirmWidget:  Text(
+                              'OK',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 63, 81, 181),
+                              ),
+                            ),
+                            cancelWidget: Text(
+                              'Cancelar',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 63, 81, 181),
+                              ),
+                            )
+                        )
                     ),
-                    confirmWidget:  Text(
-                      'OK',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 63, 81, 181),
-                      ),
-                    ),
-                    cancelWidget: Text(
-                      'Cancelar',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 63, 81, 181),
-                      ),
-                    )
                 );
                 if (pickedDate != null) {
                   String formattedDate =
@@ -1237,7 +1241,7 @@ class _TelaDados extends State<TelaDados> {
                                                       elevation: 16,
                                                       dropdownColor: corFundo,
                                                       style: const TextStyle(color: Colors.white, fontSize: 15),
-                                                      focusColor: Colors.grey,
+                                                      focusColor: Theme.of(context).scaffoldBackgroundColor,
                                                       underline: Container(
                                                         height: 0,
                                                         color: Colors.deepPurpleAccent,
@@ -1370,7 +1374,7 @@ class _TelaDados extends State<TelaDados> {
                                                         elevation: 16,
                                                         dropdownColor: corFundo,
                                                         style: const TextStyle(color: Colors.white, fontSize: 15),
-                                                        focusColor: Colors.grey,
+                                                        focusColor: Theme.of(context).scaffoldBackgroundColor,
                                                         underline: Container(
                                                           height: 0,
                                                           color: Colors.deepPurpleAccent,
@@ -1490,7 +1494,7 @@ class _TelaDados extends State<TelaDados> {
                                         ),
                                                         elevation: 16,
                                                         style: const TextStyle(color: Colors.white, fontSize: 15),
-                                                        focusColor: Colors.grey,
+                                                        focusColor: Theme.of(context).scaffoldBackgroundColor,
                                                         dropdownColor: corFundo,
                                                         underline: Container(
                                                           height: 0,
@@ -1606,7 +1610,7 @@ class _TelaDados extends State<TelaDados> {
                                                         ),
                                                         elevation: 16,
                                                         style: const TextStyle(color: Colors.white, fontSize: 15),
-                                                        focusColor: Colors.grey,
+                                                        focusColor: Theme.of(context).scaffoldBackgroundColor,
                                                         dropdownColor: corFundo,
                                                         underline: Container(
                                                           height: 0,
@@ -1720,7 +1724,7 @@ class _TelaDados extends State<TelaDados> {
                                                             ),
                                                             elevation: 16,
                                                             style: const TextStyle(color: Colors.white, fontSize: 15),
-                                                            focusColor: Colors.grey,
+                                                            focusColor: Theme.of(context).scaffoldBackgroundColor,
                                                             dropdownColor: corFundo,
                                                             underline: Container(
                                                               height: 0,

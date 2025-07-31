@@ -13,7 +13,7 @@ List<Metrica> listaMetrica = [];
 List<NivelGeografico> listaNivelGeografico = [];
 List<Localidades> listaLocalidades = [];
 List<Categorias> listaCategorias = [];
-var listaCombinada;
+var listajaCombinada;
 
 final providerContainer = ProviderContainer();
 
