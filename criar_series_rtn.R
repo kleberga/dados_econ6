@@ -1,56 +1,25 @@
-library(uuid)
-library(readxl)
+#_______________________________________________________________________________________________________________________
+#
+# Script para gerar as series a serem mostradas no app
+#
+#_______________________________________________________________________________________________________________________
+#
+#_______________________________________________________________________________________________________________________
+# inicializacao ----
+#_______________________________________________________________________________________________________________________
+# options(repos = "https://repo.bcnet.bcb.gov.br/artifactory/cran")
+# install.packages("uuid")
+
 library(jsonlite)
 library(curl)
+library(dplyr)
 library(tidyverse)
-# limpar a area de trabalho
-rm(list=ls())
-
-dados_monetarios <- read_excel("fiscal_3.xlsx")
-
-lista_nova <- list()
-base_df <- data.frame()
-for(i in c(1:nrow(dados_monetarios))){
-  
-  if(dados_monetarios[i,"per"]=="M"){
-    periodicidade <- "mensal"
-  } else if(dados_monetarios[i,"per"]=="D"){
-    periodicidade <- "diária"
-  } else if(dados_monetarios[i,"per"]=="A"){
-    periodicidade <- "anual"
-  } else if(dados_monetarios[i,"per"]=="T"){
-    periodicidade <- "trimestral"
-  } else {
-    periodicidade <- ''
-  }
-  
-  lista_nova[['numero']] <- UUIDgenerate()
-  lista_nova[['nome']] <- as.character(dados_monetarios[i,"nome"])
-  lista_nova[['nomeCompleto']] <- as.character(dados_monetarios[i,"nome_completo"])
-  lista_nova[['descricao']] <- as.character(dados_monetarios[i,"descricao"])
-  lista_nova[['formato']] <- as.character(dados_monetarios[i,"formato"])
-  lista_nova[['fonte']] <- as.character(dados_monetarios[i,"fonte"])
-  
-  
-  lista_nova[['urlAPI']] <- as.character(dados_monetarios[i,"urlAPI"])
-  lista_nova[['idAssunto']] <- as.character(dados_monetarios[i,"idAssunto"])
-  lista_nova[['periodicidade']] <- periodicidade
-  lista_nova[['metrica']] <- as.character(dados_monetarios[i,"metrica"])
-  lista_nova[['nivelGeografico']] <- as.character(dados_monetarios[i,"nivel_geog"])
-  lista_nova[['localidades']] <- as.character(dados_monetarios[i,"localidades"])
-  lista_nova[['categoria']] <- as.character(dados_monetarios[i,"categoria"])
-  
-  
-  teste <- do.call("cbind",lista_nova)
-  teste2 <- as.data.frame(teste)
-  base_df <- bind_rows(base_df, teste2)
-  
-}
-# apagar o numero das linhas
-row.names(base_df) <- NULL
+library(uuid)
 #_______________________________________________________________________________________________________________________
 # carregar os dados Resultado Fiscal do TN ----
 #_______________________________________________________________________________________________________________________
+# limpar a area de trabalho
+rm(list=ls())
 # metadados do INPC
 url <- "https://apiapex.tesouro.gov.br/aria/v1/series-temporais/custom/series"
 # carregar todos os metadados
@@ -72,14 +41,14 @@ for(i in 1:nrow(base_rtn_df_1)){
     id_serie <- UUIDgenerate()
     lista_dados[['numero']] <- id_serie
     if(w == "true"){
-      lista_dados[['nome']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "Acima da linha", " - ", "Valores reais")
+      lista_dados[['nome']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "Valores reais")
     } else {
-      lista_dados[['nome']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "Acima da linha", " - ", "Valores correntes")
+      lista_dados[['nome']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "Valores correntes")
     }
     if(w == "true"){
-      lista_dados[['nomeCompleto']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "Acima da linha", " - ", "valores reais")
+      lista_dados[['nomeCompleto']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "valores reais")
     } else {
-      lista_dados[['nomeCompleto']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "Acima da linha", " - ", "valores correntes")
+      lista_dados[['nomeCompleto']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "valores correntes")
     }
     lista_dados[['descricao']] <- "A Secretaria do Tesouro Nacional (STN) publica mensalmente o Resultado do Tesouro Nacional, no qual apresenta o resultado primário do Governo Central, composto pelo Tesouro Nacional, Previdência Social e Banco Central, além de uma descrição de receitas e despesas primárias. A STN apura o resultado a partir da mensuração dos fluxos de ingressos (receitas) e saídas (despesas), conforme metodologia conhecida como 'Acima da Linha'."
     if(w == "true"){
@@ -93,7 +62,7 @@ for(i in 1:nrow(base_rtn_df_1)){
     } else {
       lista_dados[['urlAPI']] <- paste0("https://apiapex.tesouro.gov.br/aria/v1/series-temporais/custom/resultado-fiscal?tema=",base_rtn_df_1[i,"codigoTema"],"&codigo_da_serie=",base_rtn_df_1[i,"codigoSerie"])
     }
-    lista_dados[['idAssunto']] <- 7
+    lista_dados[['idAssunto']] <- 1
     lista_dados[['periodicidade']] <- "mensal"
     lista_dados[['metrica']] <- base_rtn_df_1[i,"nomeSubtema"]
     lista_dados[['nivelGeografico']] <- "Brasil"
@@ -121,7 +90,7 @@ for(i in 1:nrow(base_rtn_df_1)){
     id_serie <- UUIDgenerate()
     lista_dados[['numero']] <- id_serie
     if(w == "true"){
-      lista_dados[['nome']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ","Valores reais")
+      lista_dados[['nome']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "Valores reais")
     } else {
       lista_dados[['nome']] <- paste0(gsub(" - Valores Mensais","",base_rtn_df_1[i,"nomeTema"]), " - ", "Valores correntes")
     }
@@ -142,7 +111,7 @@ for(i in 1:nrow(base_rtn_df_1)){
     } else {
       lista_dados[['urlAPI']] <- paste0("https://apiapex.tesouro.gov.br/aria/v1/series-temporais/custom/resultado-fiscal?tema=",base_rtn_df_1[i,"codigoTema"],"&codigo_da_serie=",base_rtn_df_1[i,"codigoSerie"])
     }
-    lista_dados[['idAssunto']] <- 7
+    lista_dados[['idAssunto']] <- 1
     lista_dados[['periodicidade']] <- "mensal"
     lista_dados[['metrica']] <- base_rtn_df_1[i,"nomeSubtema"]
     lista_dados[['nivelGeografico']] <- "Brasil"
@@ -191,7 +160,7 @@ for(i in 1:nrow(base_rtn_df_1)){
     } else {
       lista_dados[['urlAPI']] <- paste0("https://apiapex.tesouro.gov.br/aria/v1/series-temporais/custom/resultado-fiscal?tema=",base_rtn_df_1[i,"codigoTema"],"&codigo_da_serie=",base_rtn_df_1[i,"codigoSerie"])
     }
-    lista_dados[['idAssunto']] <- 7
+    lista_dados[['idAssunto']] <- 1
     lista_dados[['periodicidade']] <- "mensal"
     lista_dados[['metrica']] <- base_rtn_df_1[i,"nomeSubtema"]
     lista_dados[['nivelGeografico']] <- "Brasil"
@@ -205,10 +174,8 @@ for(i in 1:nrow(base_rtn_df_1)){
 # apagar o numero das linhas
 row.names(base_dados_3) <- NULL
 # unir as bases
-base_dados_final <- bind_rows(base_df, base_dados_1, base_dados_2, base_dados_3)
+base_dados_final <- bind_rows(base_dados_1, base_dados_2, base_dados_3)
 
 
 # exportar como csv
-write.csv(base_dados_final, file="fiscal_2.csv", row.names = F, fileEncoding = "latin1")
-  
-
+write.csv(base_dados_final, "C:/Users/depec.kleber/OneDrive - BCB Azure/Documentos/base_dados_final.csv",row.names = F, fileEncoding = "latin1")

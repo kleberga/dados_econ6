@@ -28,7 +28,7 @@ class DadosSeries {
     required this.nomeCompleto,
     required this.numero,
     required this.periodicidade,
-    required this.urlAPI
+    required this.urlAPI,
   });
 
   factory DadosSeries.fromFirestore(DocumentSnapshot doc) {
@@ -65,6 +65,30 @@ class DadosSeries {
         periodicidade: data['periodicidade'] ?? '',
         urlAPI: data['urlAPI'] ?? ''
     );
+  }
+
+  factory DadosSeries.fromJson_2(Map<String, dynamic> data) {
+    return DadosSeries(
+        categoria: data['classificacoes'] ?? '',
+        descricao: data['descricao'] ?? '',
+        fonte: data['fonte'] ?? '',
+        formato: data['formato'] ?? '',
+        idAssunto: data['idAssunto'] ?? '',
+        localidades: data['localidades'] ?? '',
+        metrica: data['metrica'] ?? '',
+        nivelGeografico: data['nivelGeografico'] ?? '',
+        nome: data['nome'] ?? '',
+        nomeCompleto: data['nomeCompleto'] ?? '',
+        numero: data['numero'] ?? '',
+        periodicidade: data['periodicidade'] ?? '',
+        urlAPI: data['urlAPI'] ?? ''
+    );
+  }
+
+  // Adicione este método na sua classe:
+  @override
+  String toString() {
+    return 'DadosSeries(nome: $nome)';
   }
 }
 

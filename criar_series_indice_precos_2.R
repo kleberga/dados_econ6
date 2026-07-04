@@ -1469,7 +1469,33 @@ cadastroSeries(101614,
                'Valor em reais',
                'Brasil',
                'Brasil',
-               'Valor em reais')
+               'Valor em reais'),
+cadastroSeries(101615,
+               "Índice Nacional de Preços ao Cons. Amplo (IPCA)",
+               "Índice Nacional de Preços ao Consumidor Amplo (IPCA)",
+               "Na estrutura do IPCA vigente desde janeiro de 2020, baseada na POF 2017-2018, a série EX3 Industriais inclui todo o segmento de bens industriais, exceto os seguintes componentes: Aparelhos eletroeletrônicos, Automóvel novo, Automóvel usado, Etanol e Fumo.",
+               "%",
+               "Banco Central do Brasil",
+               "https://api.bcb.gov.br/dados/serie/bcdata.sgs.29684/dados?formato=json",
+               1,
+               "mensal",
+               "Variação percentual mensal",
+               "Brasil",
+               "Brasil",
+               "Núcleo por exclusão - EX3 Industriais"),
+cadastroSeries(101616,
+               "Índice Nacional de Preços ao Cons. Amplo (IPCA)",
+               "Índice Nacional de Preços ao Consumidor Amplo (IPCA)",
+               "Na estrutura do IPCA vigente desde janeiro de 2020, baseada na POF 2017-2018, a série EX3 Serviços inclui todo o segmento de serviços, exceto os seguintes componentes: Mão de obra, Passagem aérea, Transporte por aplicativo, Empregado doméstico, Hospedagem, Pacote turístico, Cursos regulares, Cursos diversos, Plano de telefonia móvel, Tv por assinatura, Acesso à internet, Serviços de streaming e Serviços de streaming.",
+               "%",
+               "Banco Central do Brasil",
+               "https://api.bcb.gov.br/dados/serie/bcdata.sgs.29683/dados?formato=json",
+               1,
+               "mensal",
+               "Variação percentual mensal",
+               "Brasil",
+               "Brasil",
+               "Núcleo por exclusão - EX3 Serviços")
 )
 
 
@@ -1510,7 +1536,7 @@ for(i in c(1:length(listaSeries))){
 row.names(base_df) <- NULL
 
 # carregar os dados do IPEA
-precos_ipea <- read_excel("C:/Users/Kleber/Documents/precos_ipeadata.xlsx")
+precos_ipea <- read_excel("C:/Users/Kleber/AndroidStudioProjects/dados_economicos6/precos_ipeadata.xlsx")
 
 # unir as bases
 
@@ -1518,7 +1544,7 @@ base_df_2 <- bind_rows(base_ipca, base_inpc, base_ipca15, base_df, base_sinapi_6
                        precos_ipea)
 
 # exportar como csv
-write.csv(base_df_2, file="C:/Users/Kleber/Documents/indice_precos_3.csv", row.names = F)
+write.csv(base_df_2, file="C:/Users/Kleber/AndroidStudioProjects/dados_economicos6/indice_precos_3.csv", row.names = F)
      
 
 

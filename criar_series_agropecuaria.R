@@ -8,7 +8,7 @@ library(readxl)
 #_______________________________________________________________________________________________________________________
 # carregar a tabela de municipios ----
 #_______________________________________________________________________________________________________________________
-rel_municipio <- read_excel("DTB_2022/RELATORIO_DTB_BRASIL_MUNICIPIO.xls")
+rel_municipio <- read_excel("DTB_2025/RELATORIO_DTB_BRASIL_2025_MUNICIPIOS.xls")
 rel_municipio[,"sigla_uf"] <- NA
 rel_municipio$sigla_uf <- ifelse(rel_municipio$UF==12,"AC",rel_municipio$sigla_uf)
 rel_municipio$sigla_uf <- ifelse(rel_municipio$UF==27,"AL",rel_municipio$sigla_uf)
@@ -193,136 +193,136 @@ row.names(base_est_259) <- NULL
 #_______________________________________________________________________________________________________________________
 # levantamento de safra - 188 ----
 #_______________________________________________________________________________________________________________________
-# metadados do INPC
-url <- "https://servicodados.ibge.gov.br/api/v3/agregados/188/metadados"
-# carregar todos os metadados
-inpc <- fromJSON(url)
-# filtrar o nivel territorial
-nivel_territorial <- inpc$nivelTerritorial$Administrativo
-# filtrar as variaveis
-variaveis <- inpc$variaveis
-# filtrar as categorias
-categorias1 <- inpc$classificacoes$categorias[[1]]
-categorias1[,"classif"] <- 49
-categorias2 <- inpc$classificacoes$categorias[[2]]
-categorias2[,"classif"] <- 48
-# categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
-# url das localidades
-url_loc <- "https://servicodados.ibge.gov.br/api/v3/agregados/188/localidades/N1|N2|N3"
-# carregar as localidades
-localidades <- fromJSON(url_loc)
-# dividir as bases
-localidades1 <- localidades[,c("id","nome")]
-# renomear as colunas
-colnames(localidades1) <- c("id_loc","nome_loc")
-# criar a segunda base
-localidades2 <- localidades$nivel
-# renomear a base de localidades 2
-colnames(localidades2) <- c("id_nivel","nome_nivel")
-# unir as bases novamente
-localidades <- cbind(localidades1, localidades2)
-# criar lista vazia para armazenar as series
-lista_dados <- list()
-# data frame vazio para se preenchido
-base_est_188 <- data.frame()
-# preencher a lista com as series
-for(i in 1:nrow(variaveis)){
-  for(j in 1:nrow(localidades)){
-    for(w in c(1:nrow(categorias1))){
-      for(k in c(1:nrow(categorias2))){
-        codigo <- UUIDgenerate()
-        lista_dados[['numero']] <- codigo
-        lista_dados[['nome']] <- "Levantamento Sistemático da Produção Agrícola"
-        lista_dados[['nomeCompleto']] <- "Levantamento Sistemático da Produção Agrícola"
-        lista_dados[['descricao']] <-"O Levantamento Sistemático da Produção Agrícola tem por objetivo fornecer informações estatísticas sobre o plantio, colheita, produção e rendimento médio, de forma sistemática, para os principais produtos das lavouras permanentes e temporárias. É uma pesquisa de previsão e acompanhamento das variáveis área, produção e rendimento médio de 25 importantes produtos agrícolas, desde a fase de intenção de plantio até o final da colheita, de cada cultura investigada dentro do ano civil corrente e prognóstico da safra subsequente."
-        lista_dados[['formato']] <- "Quilogramas por Hectare"
-        lista_dados[['fonte']] <- "IBGE"
-        lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/188/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-        lista_dados[['idAssunto']] <- 9
-        lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
-        lista_dados[['metrica']] <-variaveis[i,"nome"]
-        lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
-        lista_dados[['localidades']] <- localidades[j,"nome_loc"]
-        lista_dados[['categoria']] <- paste0(categorias1[w,"nome"], " - ", categorias2[k,"nome"])
-        teste <- do.call("cbind",lista_dados)
-        teste2 <- as.data.frame(teste)
-        base_est_188 <- bind_rows(base_est_188, teste2)
-      }
-
-    }
-  }
-}
-# apagar o numero das linhas
-row.names(base_est_188) <- NULL
+# # metadados do INPC
+# url <- "https://servicodados.ibge.gov.br/api/v3/agregados/188/metadados"
+# # carregar todos os metadados
+# inpc <- fromJSON(url)
+# # filtrar o nivel territorial
+# nivel_territorial <- inpc$nivelTerritorial$Administrativo
+# # filtrar as variaveis
+# variaveis <- inpc$variaveis
+# # filtrar as categorias
+# categorias1 <- inpc$classificacoes$categorias[[1]]
+# categorias1[,"classif"] <- 49
+# categorias2 <- inpc$classificacoes$categorias[[2]]
+# categorias2[,"classif"] <- 48
+# # categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
+# # url das localidades
+# url_loc <- "https://servicodados.ibge.gov.br/api/v3/agregados/188/localidades/N1|N2|N3"
+# # carregar as localidades
+# localidades <- fromJSON(url_loc)
+# # dividir as bases
+# localidades1 <- localidades[,c("id","nome")]
+# # renomear as colunas
+# colnames(localidades1) <- c("id_loc","nome_loc")
+# # criar a segunda base
+# localidades2 <- localidades$nivel
+# # renomear a base de localidades 2
+# colnames(localidades2) <- c("id_nivel","nome_nivel")
+# # unir as bases novamente
+# localidades <- cbind(localidades1, localidades2)
+# # criar lista vazia para armazenar as series
+# lista_dados <- list()
+# # data frame vazio para se preenchido
+# base_est_188 <- data.frame()
+# # preencher a lista com as series
+# for(i in 1:nrow(variaveis)){
+#   for(j in 1:nrow(localidades)){
+#     for(w in c(1:nrow(categorias1))){
+#       for(k in c(1:nrow(categorias2))){
+#         codigo <- UUIDgenerate()
+#         lista_dados[['numero']] <- codigo
+#         lista_dados[['nome']] <- "Levantamento Sistemático da Produção Agrícola"
+#         lista_dados[['nomeCompleto']] <- "Levantamento Sistemático da Produção Agrícola"
+#         lista_dados[['descricao']] <-"O Levantamento Sistemático da Produção Agrícola tem por objetivo fornecer informações estatísticas sobre o plantio, colheita, produção e rendimento médio, de forma sistemática, para os principais produtos das lavouras permanentes e temporárias. É uma pesquisa de previsão e acompanhamento das variáveis área, produção e rendimento médio de 25 importantes produtos agrícolas, desde a fase de intenção de plantio até o final da colheita, de cada cultura investigada dentro do ano civil corrente e prognóstico da safra subsequente."
+#         lista_dados[['formato']] <- "Quilogramas por Hectare"
+#         lista_dados[['fonte']] <- "IBGE"
+#         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/188/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
+#         lista_dados[['idAssunto']] <- 9
+#         lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
+#         lista_dados[['metrica']] <-variaveis[i,"nome"]
+#         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
+#         lista_dados[['localidades']] <- localidades[j,"nome_loc"]
+#         lista_dados[['categoria']] <- paste0(categorias1[w,"nome"], " - ", categorias2[k,"nome"])
+#         teste <- do.call("cbind",lista_dados)
+#         teste2 <- as.data.frame(teste)
+#         base_est_188 <- bind_rows(base_est_188, teste2)
+#       }
+# 
+#     }
+#   }
+# }
+# # apagar o numero das linhas
+# row.names(base_est_188) <- NULL
 #_______________________________________________________________________________________________________________________
 # levantamento de safra - 1618 ----
 #_______________________________________________________________________________________________________________________
-# metadados do INPC
-url <- "https://servicodados.ibge.gov.br/api/v3/agregados/1618/metadados"
-# carregar todos os metadados
-inpc <- fromJSON(url)
-# filtrar o nivel territorial
-nivel_territorial <- inpc$nivelTerritorial$Administrativo
-# filtrar as variaveis
-variaveis <- inpc$variaveis
-# filtrar as categorias
-categorias1 <- inpc$classificacoes$categorias[[1]]
-categorias1[,"classif"] <- 49
-categorias2 <- inpc$classificacoes$categorias[[2]]
-categorias2[,"classif"] <- 48
-# categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
-# url das localidades
-url_loc <- "https://servicodados.ibge.gov.br/api/v3/agregados/1618/localidades/N1|N2|N3"
-# carregar as localidades
-localidades <- fromJSON(url_loc)
-# dividir as bases
-localidades1 <- localidades[,c("id","nome")]
-# renomear as colunas
-colnames(localidades1) <- c("id_loc","nome_loc")
-# criar a segunda base
-localidades2 <- localidades$nivel
-# renomear a base de localidades 2
-colnames(localidades2) <- c("id_nivel","nome_nivel")
-# unir as bases novamente
-localidades <- cbind(localidades1, localidades2)
-# criar lista vazia para armazenar as series
-lista_dados <- list()
-# data frame vazio para se preenchido
-base_est_1618 <- data.frame()
-# preencher a lista com as series
-for(i in 1:nrow(variaveis)){
-  for(j in 1:nrow(localidades)){
-    for(w in c(1:nrow(categorias1))){
-      for(k in c(1:nrow(categorias2))){
-        codigo <- UUIDgenerate()
-        lista_dados[['numero']] <- codigo
-        lista_dados[['nome']] <- "Levantamento Sistemático da Produção Agrícola"
-        lista_dados[['nomeCompleto']] <- "Levantamento Sistemático da Produção Agrícola"
-        lista_dados[['descricao']] <-"O Levantamento Sistemático da Produção Agrícola tem por objetivo fornecer informações estatísticas sobre o plantio, colheita, produção e rendimento médio, de forma sistemática, para os principais produtos das lavouras permanentes e temporárias. É uma pesquisa de previsão e acompanhamento das variáveis área, produção e rendimento médio de 25 importantes produtos agrícolas, desde a fase de intenção de plantio até o final da colheita, de cada cultura investigada dentro do ano civil corrente e prognóstico da safra subsequente."
-        
-        if(variaveis[i,"id"]%in%c(109,216)){
-          lista_dados[['formato']] <- "Hectares"
-        } else {
-          lista_dados[['formato']] <- "Toneladas"
-        }
-        lista_dados[['fonte']] <- "IBGE"
-        lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1618/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
-        lista_dados[['idAssunto']] <- 9
-        lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
-        lista_dados[['metrica']] <-variaveis[i,"nome"]
-        lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
-        lista_dados[['localidades']] <- localidades[j,"nome_loc"]
-        lista_dados[['categoria']] <- paste0(categorias1[w,"nome"], " - ", categorias2[k,"nome"])
-        teste <- do.call("cbind",lista_dados)
-        teste2 <- as.data.frame(teste)
-        base_est_1618 <- bind_rows(base_est_1618, teste2)
-      }
-      
-    }
-  }
-}
-# apagar o numero das linhas
-row.names(base_est_1618) <- NULL
+# # metadados do INPC
+# url <- "https://servicodados.ibge.gov.br/api/v3/agregados/1618/metadados"
+# # carregar todos os metadados
+# inpc <- fromJSON(url)
+# # filtrar o nivel territorial
+# nivel_territorial <- inpc$nivelTerritorial$Administrativo
+# # filtrar as variaveis
+# variaveis <- inpc$variaveis
+# # filtrar as categorias
+# categorias1 <- inpc$classificacoes$categorias[[1]]
+# categorias1[,"classif"] <- 49
+# categorias2 <- inpc$classificacoes$categorias[[2]]
+# categorias2[,"classif"] <- 48
+# # categorias <- categorias[categorias$id%in%c(7169,7170,7445,7486,7558,7625,7660,7712,7766,7786),]
+# # url das localidades
+# url_loc <- "https://servicodados.ibge.gov.br/api/v3/agregados/1618/localidades/N1|N2|N3"
+# # carregar as localidades
+# localidades <- fromJSON(url_loc)
+# # dividir as bases
+# localidades1 <- localidades[,c("id","nome")]
+# # renomear as colunas
+# colnames(localidades1) <- c("id_loc","nome_loc")
+# # criar a segunda base
+# localidades2 <- localidades$nivel
+# # renomear a base de localidades 2
+# colnames(localidades2) <- c("id_nivel","nome_nivel")
+# # unir as bases novamente
+# localidades <- cbind(localidades1, localidades2)
+# # criar lista vazia para armazenar as series
+# lista_dados <- list()
+# # data frame vazio para se preenchido
+# base_est_1618 <- data.frame()
+# # preencher a lista com as series
+# for(i in 1:nrow(variaveis)){
+#   for(j in 1:nrow(localidades)){
+#     for(w in c(1:nrow(categorias1))){
+#       for(k in c(1:nrow(categorias2))){
+#         codigo <- UUIDgenerate()
+#         lista_dados[['numero']] <- codigo
+#         lista_dados[['nome']] <- "Levantamento Sistemático da Produção Agrícola"
+#         lista_dados[['nomeCompleto']] <- "Levantamento Sistemático da Produção Agrícola"
+#         lista_dados[['descricao']] <-"O Levantamento Sistemático da Produção Agrícola tem por objetivo fornecer informações estatísticas sobre o plantio, colheita, produção e rendimento médio, de forma sistemática, para os principais produtos das lavouras permanentes e temporárias. É uma pesquisa de previsão e acompanhamento das variáveis área, produção e rendimento médio de 25 importantes produtos agrícolas, desde a fase de intenção de plantio até o final da colheita, de cada cultura investigada dentro do ano civil corrente e prognóstico da safra subsequente."
+#         
+#         if(variaveis[i,"id"]%in%c(109,216)){
+#           lista_dados[['formato']] <- "Hectares"
+#         } else {
+#           lista_dados[['formato']] <- "Toneladas"
+#         }
+#         lista_dados[['fonte']] <- "IBGE"
+#         lista_dados[['urlAPI']] <- paste0("https://servicodados.ibge.gov.br/api/v3/agregados/1618/periodos/all/variaveis/",variaveis[i,"id"],"?localidades=",localidades[j,"id_nivel"],"[",localidades[j,"id_loc"],"]&classificacao=",categorias1[w,"classif"],"[",categorias1[w,"id"],"]|",categorias2[k,"classif"],"[",categorias2[k,"id"],"]")
+#         lista_dados[['idAssunto']] <- 9
+#         lista_dados[['periodicidade']] <- inpc$periodicidade$frequencia
+#         lista_dados[['metrica']] <-variaveis[i,"nome"]
+#         lista_dados[['nivelGeografico']] <- localidades[j,"nome_nivel"]
+#         lista_dados[['localidades']] <- localidades[j,"nome_loc"]
+#         lista_dados[['categoria']] <- paste0(categorias1[w,"nome"], " - ", categorias2[k,"nome"])
+#         teste <- do.call("cbind",lista_dados)
+#         teste2 <- as.data.frame(teste)
+#         base_est_1618 <- bind_rows(base_est_1618, teste2)
+#       }
+#       
+#     }
+#   }
+# }
+# # apagar o numero das linhas
+# row.names(base_est_1618) <- NULL
 #_______________________________________________________________________________________________________________________
 # pesquisa de ovos ----
 #_______________________________________________________________________________________________________________________
@@ -882,7 +882,9 @@ for(i in c(1:nrow(ipeadata_arq))){
 
 
 
-base_df_2 <- bind_rows(base_est_254, base_est_259, base_est_188, base_est_1618, base_est_7524, base_est_1088, 
+# base_df_2 <- bind_rows(base_est_254, base_est_259, base_est_188, base_est_1618, base_est_7524, base_est_1088, 
+#                        base_est_1089, base_est_1090, base_est_1086, base_est_1092, base_est_1093, base_est_1094, base_df_nova)
+base_df_2 <- bind_rows(base_est_254, base_est_259, base_est_7524, base_est_1088, 
                        base_est_1089, base_est_1090, base_est_1086, base_est_1092, base_est_1093, base_est_1094, base_df_nova)
 
 # exportar como csv

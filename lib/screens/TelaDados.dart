@@ -575,6 +575,92 @@ class _TelaDados extends State<TelaDados> {
     }
   }
 
+  Future loadDataRTN() async {
+    setState(() {
+      listaAnosSerieAnual.clear();
+      notFound = false;
+    });
+    http.Response response;
+    String jsonString;
+    var contador = 0;
+    do {
+      response = await getJsonFromRestAPI(urlSerie);
+      jsonString = response.body;
+      contador = contador + 1;
+    } while(response.statusCode!=200 && contador<=10);
+    if(response.statusCode!=200){
+      setState(() {
+        notFound = true;
+        notFoundText = "Dados não disponíveis no momento. A fonte dos dados desta série pode estar temporariamente indisponível. Tente mais tarde!";
+      });
+    } else {
+      setState(() {
+        notFound = false;
+      });
+      var pattern1 = RegExp(r'/* #4D749F */\s*{[^}]*}');
+      jsonString2 = jsonString.replaceAll(pattern1, '');
+      jsonString2 = jsonString2.replaceAll('/* #4D749F */', '');
+      final jsonResponse = json.decode(jsonString2);
+      final item = jsonResponse['registros'];
+
+      if(chartData.isNotEmpty){
+        chartData.clear();
+      }
+      setState(() {
+        for (var i = 0; i<item.length; i++){
+          var x = item[i]['data'];
+          var w = formatter1.format(int.parse(x.substring(5,7)));
+          var ano = formatter2.format(int.parse(x.substring(0, 4)));
+          x = w + "/" + ano;
+          var y = item[i]['valor'].toString();
+          if(y!="..."&&y!="-"&&y!="X"&&y!="null"){
+            chartData.add(
+                serie_app(
+                    DateFormat(formatoData).parse(x),
+                    double.parse(y)
+                )
+            );
+          }
+        }
+        chartData.sort((a, b){ //sorting in descending order
+          return a.data.compareTo(b.data);
+        });
+        if(chartData.isEmpty){
+          setState(() {
+            notFound = true;
+            notFoundText = "Esta série não possui valores! Altere os filtros da pesquisa.";
+          });
+        } else {
+          setState(() {
+            notFound = false;
+          });
+          dataInicialSerie = DateFormat(formatoData).format(chartData.first.data).toString();
+          dataFinalSerie = DateFormat(formatoData).format(chartData.last.data).toString();
+          ultimaDataIPCA = chartData.last.data;
+          listaAnosSerieAnual = chartData.map((e) => e.data.toString().substring(0,4)).toSet().toList();
+          if(listaAnosSerieAnual.length>13){
+            anoInicialSelecionado = listaAnosSerieAnual.length-13;
+          } else {
+            anoInicialSelecionado = listaAnosSerieAnual.length;
+          }
+          if(listaAnosSerieAnual.length>0){
+            anoFinalSelecionado = listaAnosSerieAnual.length-1;
+          } else {
+            anoFinalSelecionado = listaAnosSerieAnual.length;
+          }
+          endval1 = chartData.last.data;
+          if(chartData.length>13){
+            startval1 = chartData[chartData.length-13].data;
+          } else {
+            startval1 = chartData.first.data;
+          }
+        }
+      });
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('dataFinal', endval1.toString());
+    }
+  }
+
   List<serie_app> itemsBetweenDates({
     required List<serie_app> lista,
     required DateTime start,
@@ -592,6 +678,59 @@ class _TelaDados extends State<TelaDados> {
 
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+  Future<List<DadosSeries>> fetchDados_lspa(String url_meta, String url_loc) async {
+    final response = await http.get(Uri.parse(url_meta));
+    final response2 = await http.get(Uri.parse(url_loc));
+    if (response.statusCode == 200 && response2.statusCode == 200) {
+      // 1. Decodifica o JSON (retorna uma List<dynamic>)
+      Map<String, dynamic> jsonMap = jsonDecode(response.body);
+
+      List<dynamic> categorias1 = jsonMap['classificacoes'][0]['categorias'];
+      List<dynamic> categorias2 = jsonMap['classificacoes'][1]['categorias'];
+      List<dynamic> variaveis = jsonMap['variaveis'];
+      List<dynamic> nivel_geog = jsonDecode(response2.body);
+      List<Map<String,dynamic>> nivel_geog2 = nivel_geog.map((dados) {
+        return{
+          'id': dados['id'],
+          'nome': dados['nome'],
+          'nivel_id': dados['nivel']['id'],
+          'nivel_nome': dados['nivel']['nome']
+        };
+      }).toList().toSet().toList();
+
+      List<Map<String, dynamic>> lista_aux = [];
+      for(var i in categorias1){
+        for(var w in categorias2){
+          for(var j in nivel_geog2){
+            for(var k in variaveis){
+              lista_aux.add({
+                'numero': "${i['nome']}-${w['nome']}-${j['nivel_id']}-${j['id']}",
+                'nome': jsonMap['pesquisa'],
+                'nomeCompleto': jsonMap['pesquisa'],
+                'descricao': "O Levantamento Sistemático da Produção Agrícola tem por objetivo fornecer informações estatísticas sobre o plantio, colheita, produção e rendimento médio, de forma sistemática, para os principais produtos das lavouras permanentes e temporárias. É uma pesquisa de previsão e acompanhamento das variáveis área, produção e rendimento médio de 25 importantes produtos agrícolas, desde a fase de intenção de plantio até o final da colheita, de cada cultura investigada dentro do ano civil corrente e prognóstico da safra subsequente.",
+                'formato': w['unidade'],
+                'fonte': 'IBGE',
+                'urlAPI': 'https://servicodados.ibge.gov.br/api/v3/agregados/${jsonMap['id']}/periodos/all/variaveis/${k['id']}?localidades=${j['nivel_id']}[${j['id']}]&classificacao=49[${i['id']}]|48[${w['id']}]',
+                'idAssunto': "9",
+                'periodicidade': jsonMap['periodicidade']['frequencia'],
+                'metrica': k['nome'],
+                'nivelGeografico': j['nivel_nome'],
+                'localidades': j['nome'],
+                'categoria': '${i['nome']} - ${w['nome']}'
+              });
+            }
+          }
+        }
+      }
+
+      // 2. Converte para uma lista de objetos da sua classe
+      return lista_aux.map((item) => DadosSeries.fromJson(item)).toList();
+    } else {
+      throw Exception('Falha ao carregar dados');
+    }
+  }
+
+
   Future<List<DadosSeries>> fetchData(String codAssunto) async {
     var arquivo = 'lib/database/'+codAssunto+'.json.gz';
     // carregar o arquivo GZIP
@@ -602,8 +741,32 @@ class _TelaDados extends State<TelaDados> {
     // Decode os dados em JSON
     String jsonString = utf8.decode(decompressed);
     List<dynamic> jsonData = json.decode(jsonString);
+
     // transformar os dados
     List<DadosSeries> transformedData = jsonData.map((item) => DadosSeries.fromJson(item)).toList();
+
+    var enderecos_lspa = [
+      {"url_meta": 'https://servicodados.ibge.gov.br/api/v3/agregados/188/metadados',
+      'url_loc': 'https://servicodados.ibge.gov.br/api/v3/agregados/188/localidades/N1%7CN2%7CN3'},
+      {"url_meta": 'https://servicodados.ibge.gov.br/api/v3/agregados/1618/metadados',
+          'url_loc': 'https://servicodados.ibge.gov.br/api/v3/agregados/1618/localidades/N1%7CN2%7CN3'}
+    ];
+
+    if(codAssunto == "agropecuaria"){
+      var tarefas = enderecos_lspa.map((endereco) {
+        return fetchDados_lspa(endereco['url_meta']!, endereco['url_loc']!);
+      });
+
+      // 2. Executa todas em paralelo e espera o resultado de todas
+      List<List<DadosSeries>> resultadosApi = await Future.wait(tarefas);
+
+      // Achata a lista de listas em uma lista única
+      List<DadosSeries> listaApiPlana = resultadosApi.expand((lista) => lista).toList();
+
+      // 3. Achata a lista de listas em uma lista única
+      transformedData = [...transformedData, ...listaApiPlana];
+    }
+
     // ordenar os dados
     transformedData.sort((a, b) => removeDiacritics(a.nome).compareTo(removeDiacritics(b.nome)));
     return transformedData;
@@ -676,14 +839,17 @@ class _TelaDados extends State<TelaDados> {
     loadAd();
     codAssunto = widget.assuntoSerie;
     api1Future = fetchData(codAssunto);
+
     api1Future.then((data) {
         setState(() {
+
           var listaMeusDados = providerContainer.read(listaMeusDadosProvider.notifier);
 
           listaMeusDados.setListaEscolhida(data);
           listaEscolhida = providerContainer.read(listaMeusDadosProvider);
 
           listaMostrar = listaEscolhida.map((element) => element.nome.toString()).toList().toSet().toList();
+
           listaMostrar.sort((a, b) => removeDiacritics(a).compareTo(removeDiacritics(b)));
           dropdownValue = listaMostrar.isNotEmpty ? listaMostrar.first : '';
 
@@ -764,6 +930,8 @@ class _TelaDados extends State<TelaDados> {
             loadDataFocus();
           } else if(fonte == "IBGE") {
             loadDataIBGE();
+          } else if(fonte == "Secretaria do Tesouro Nacional (STN)"){
+            loadDataRTN();
           } else {
             loadDataIPEADATA();
           }
@@ -776,8 +944,6 @@ class _TelaDados extends State<TelaDados> {
     });
     dropdownValue = "1";
   }
-
-
 
   void _showDialog(Widget child) async {
     showCupertinoModalPopup<void>(
@@ -1247,6 +1413,7 @@ class _TelaDados extends State<TelaDados> {
                                                         color: Colors.deepPurpleAccent,
                                                       ),
                                                       onChanged: (String? value) {
+
                                                         // This is called when the user selects an item.
                                                         setState(() {
 
@@ -1294,6 +1461,7 @@ class _TelaDados extends State<TelaDados> {
                                                           urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                               element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).urlAPI;
+
                                                           fonte = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                               element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                               element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).fonte;
@@ -1328,6 +1496,8 @@ class _TelaDados extends State<TelaDados> {
                                                             loadDataIBGE();
                                                           } else if(fonte == "IPEADATA"){
                                                             loadDataIPEADATA();
+                                                          } else if(fonte == "Secretaria do Tesouro Nacional (STN)"){
+                                                            loadDataRTN();
                                                           } else {
                                                             loadDataFocus();
                                                           }
@@ -1451,6 +1621,8 @@ class _TelaDados extends State<TelaDados> {
                                                               loadDataIBGE();
                                                             } else if(fonte == "IPEADATA"){
                                                               loadDataIPEADATA();
+                                                            } else if(fonte == "Secretaria do Tesouro Nacional (STN)"){
+                                                              loadDataRTN();
                                                             } else {
                                                               loadDataFocus();
                                                             }
@@ -1567,6 +1739,8 @@ class _TelaDados extends State<TelaDados> {
                                                               loadDataIBGE();
                                                             } else if(fonte == "IPEADATA"){
                                                               loadDataIPEADATA();
+                                                            } else if(fonte == "Secretaria do Tesouro Nacional (STN)"){
+                                                              loadDataRTN();
                                                             } else {
                                                               loadDataFocus();
                                                             }
@@ -1677,6 +1851,8 @@ class _TelaDados extends State<TelaDados> {
                                                               loadDataIBGE();
                                                             } else if(fonte == "IPEADATA"){
                                                               loadDataIPEADATA();
+                                                            } else if(fonte == "Secretaria do Tesouro Nacional (STN)"){
+                                                              loadDataRTN();
                                                             } else {
                                                               loadDataFocus();
                                                             }
@@ -1768,6 +1944,8 @@ class _TelaDados extends State<TelaDados> {
                                                                   loadDataIBGE();
                                                                 } else if(fonte == "IPEADATA"){
                                                                   loadDataIPEADATA();
+                                                                } else if(fonte == "Secretaria do Tesouro Nacional (STN)"){
+                                                                  loadDataRTN();
                                                                 } else {
                                                                   loadDataFocus();
                                                                 }
