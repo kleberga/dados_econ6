@@ -699,16 +699,22 @@ class _TelaDados extends State<TelaDados> {
       }).toList().toSet().toList();
 
       List<Map<String, dynamic>> lista_aux = [];
+      var formato_unidade;
       for(var i in categorias1){
         for(var w in categorias2){
           for(var j in nivel_geog2){
             for(var k in variaveis){
+              if(k["nome"] == "Área plantada" || k["nome"] == "Área colhida"){
+                formato_unidade = "Hectares";
+                } else {
+                formato_unidade =  w['unidade'];
+                }
               lista_aux.add({
                 'numero': "${i['nome']}-${w['nome']}-${j['nivel_id']}-${j['id']}",
                 'nome': jsonMap['pesquisa'],
                 'nomeCompleto': jsonMap['pesquisa'],
                 'descricao': "O Levantamento Sistemático da Produção Agrícola tem por objetivo fornecer informações estatísticas sobre o plantio, colheita, produção e rendimento médio, de forma sistemática, para os principais produtos das lavouras permanentes e temporárias. É uma pesquisa de previsão e acompanhamento das variáveis área, produção e rendimento médio de 25 importantes produtos agrícolas, desde a fase de intenção de plantio até o final da colheita, de cada cultura investigada dentro do ano civil corrente e prognóstico da safra subsequente.",
-                'formato': w['unidade'],
+                'formato': formato_unidade,
                 'fonte': 'IBGE',
                 'urlAPI': 'https://servicodados.ibge.gov.br/api/v3/agregados/${jsonMap['id']}/periodos/all/variaveis/${k['id']}?localidades=${j['nivel_id']}[${j['id']}]&classificacao=49[${i['id']}]|48[${w['id']}]',
                 'idAssunto': "9",
