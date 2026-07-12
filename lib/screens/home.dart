@@ -10,7 +10,6 @@ import 'package:flutter/services.dart' as rootBundle;
 import 'dart:convert';
 import 'package:diacritic/diacritic.dart';
 
-
 class Home extends StatefulWidget {
   const Home({super.key});
   @override
