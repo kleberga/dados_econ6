@@ -6,7 +6,6 @@ import 'package:dados_economicos6/screens/reportar_erro.dart';
 import 'package:dados_economicos6/model/variables_class.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -17,7 +16,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import '../service/back_services.dart';
 import '../infra/database_helper.dart';
 import 'descricao_series.dart';
 import '../model/model.dart';
@@ -384,8 +382,17 @@ class _TelaDados extends State<TelaDados> {
       var pattern1 = RegExp(r'/* #4D749F */\s*{[^}]*}');
       jsonString2 = jsonString.replaceAll(pattern1, '');
       jsonString2 = jsonString2.replaceAll('/* #4D749F */', '');
+      // jsonString2 = jsonString2.replaceAll('..', '');
       final jsonResponse = json.decode(jsonString2);
+
+      print("jsonResponse: $jsonResponse");
+
+
       final item = jsonResponse[0]['resultados'][0]['series'][0]['serie'];
+
+      print("item: $item");
+
+
       if(chartData.isNotEmpty){
         chartData.clear();
       }
@@ -413,7 +420,7 @@ class _TelaDados extends State<TelaDados> {
           }
           x = w + "/" + formatter2.format(int.parse(x.substring(0, 4)));
           var y = item.values.toList()[i].toString();
-          if(y!="..."&&y!="-"&&y!="X"){
+          if(y!="..."&&y!="-"&&y!="X"&&y!=".."){
             chartData.add(
                 serie_app(
                     DateFormat('MM/yyyy').parse(x),
@@ -1260,25 +1267,25 @@ class _TelaDados extends State<TelaDados> {
 
   @override
   Widget build(BuildContext context) {
-    Future<void> startService() async {
-      await FlutterBackgroundService().startService();
-    }
-
-    Future<void> stopService() async {
-      FlutterBackgroundService service = FlutterBackgroundService();
-      service.invoke('stopService');
-    }
-
-    Future<void> restartService() async {
-      await stopService();
-      await Future.delayed(Duration(seconds: 1));
-      await initializeService1();
-      await startService();
-    }
-
-    Future<bool> isServiceRunning() async {
-      return await FlutterBackgroundService().isRunning();
-    }
+    // Future<void> startService() async {
+    //   await FlutterBackgroundService().startService();
+    // }
+    //
+    // Future<void> stopService() async {
+    //   FlutterBackgroundService service = FlutterBackgroundService();
+    //   service.invoke('stopService');
+    // }
+    //
+    // Future<void> restartService() async {
+    //   await stopService();
+    //   await Future.delayed(Duration(seconds: 1));
+    //   await initializeService1();
+    //   await startService();
+    // }
+    //
+    // Future<bool> isServiceRunning() async {
+    //   return await FlutterBackgroundService().isRunning();
+    // }
 
     filtrarDados(){
       dateInputIni.text = DateFormat(formatoData).format(startval1).toString();
@@ -1919,6 +1926,12 @@ class _TelaDados extends State<TelaDados> {
                                                                 urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                     element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                     element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).urlAPI;
+
+
+                                                                print("urlSerie: $urlSerie");
+
+
+
                                                                 fonte = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                     element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                     element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).fonte;
