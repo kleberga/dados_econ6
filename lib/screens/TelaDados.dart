@@ -384,15 +384,7 @@ class _TelaDados extends State<TelaDados> {
       jsonString2 = jsonString2.replaceAll('/* #4D749F */', '');
       // jsonString2 = jsonString2.replaceAll('..', '');
       final jsonResponse = json.decode(jsonString2);
-
-      print("jsonResponse: $jsonResponse");
-
-
       final item = jsonResponse[0]['resultados'][0]['series'][0]['serie'];
-
-      print("item: $item");
-
-
       if(chartData.isNotEmpty){
         chartData.clear();
       }
@@ -1926,12 +1918,6 @@ class _TelaDados extends State<TelaDados> {
                                                                 urlSerie = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                     element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                     element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).urlAPI;
-
-
-                                                                print("urlSerie: $urlSerie");
-
-
-
                                                                 fonte = listaEscolhida.firstWhere((element) => element.nome==dropdownValue &&
                                                                     element.metrica==dropdownValueMetrica && element.nivelGeografico==dropdownValueNivelGeog &&
                                                                     element.localidades==dropdownValueLocalidade && element.categoria==dropdownValueCategoria).fonte;

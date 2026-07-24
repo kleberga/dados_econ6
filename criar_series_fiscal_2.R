@@ -3,8 +3,11 @@ library(readxl)
 library(jsonlite)
 library(curl)
 library(tidyverse)
+library(rstudioapi)
 # limpar a area de trabalho
 rm(list=ls())
+
+setwd(dirname(getSourceEditorContext()$path))
 
 dados_monetarios <- read_excel("fiscal_3.xlsx")
 
